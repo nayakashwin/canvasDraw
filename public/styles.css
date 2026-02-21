@@ -1,0 +1,561 @@
+/**
+ * ============================================================================
+ * CANVAS DRAW - STYLESHEET
+ * ============================================================================
+ * 
+ * PURPOSE:
+ * This file contains all of styling for the Canvas Draw application.
+ * It styles the toolbar, buttons, color pickers, and overall layout.
+ * 
+ * WHY WE NEED IT:
+ * Without styles, application would look broken and unprofessional.
+ * Good styling makes the application user-friendly and visually appealing.
+ * 
+ * CUSTOMIZATION:
+ * You can modify colors, sizes, and layouts here to match your preferences.
+ */
+
+/* ============================================================================
+   GLOBAL STYLES
+   ============================================================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-size: 14px;
+  color: #333;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================================
+   MAIN CONTENT AREA
+   ============================================================================ */
+
+.main-content {
+  display: flex;
+  flex: 1;
+  margin-top: 70px; /* Space for toolbar */
+  height: calc(100% - 70px);
+}
+
+.canvas-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ============================================================================
+   HISTORY PANEL
+   ============================================================================ */
+
+.history-panel {
+  width: 300px;
+  background-color: #ffffff;
+  border-left: 2px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
+}
+
+.history-panel-header {
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-panel-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.history-panel-header .clear-btn {
+  background: none;
+  border: none;
+  color: #4a90e2;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.history-panel-header .clear-btn:hover {
+  background-color: rgba(74, 144, 226, 0.1);
+}
+
+.history-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.history-item {
+  padding: 10px;
+  margin-bottom: 8px;
+  background-color: #f8f9fa;
+  border-left: 3px solid #4a90e2;
+  border-radius: 4px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.history-item:hover {
+  background-color: #e8f4ff;
+  border-left-color: #2d7bc4;
+}
+
+.history-item-time {
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.history-item-action {
+  font-weight: 500;
+  color: #333;
+}
+
+.history-item-details {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.history-item.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+  font-style: italic;
+  border-left: none;
+  background-color: transparent;
+}
+
+.history-item.empty-state:hover {
+  background-color: transparent;
+}
+
+/* History panel scrollbar styling */
+.history-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.history-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+.history-list::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* ============================================================================
+   TOOLBAR
+   ============================================================================ */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 20px;
+  background-color: #ffffff;
+  border-bottom: 2px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  flex-wrap: wrap;
+}
+
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 20px;
+  border-right: 1px solid #e0e0e0;
+}
+
+.toolbar-section:last-child {
+  border-right: none;
+}
+
+.toolbar-section.toolbar-info {
+  margin-left: auto;
+  padding-right: 0;
+}
+
+.toolbar-label {
+  font-weight: 600;
+  color: #666;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================================================
+   TOOL BUTTONS
+   ============================================================================ */
+
+.toolbar-tools {
+  display: flex;
+  gap: 5px;
+}
+
+.tool-btn,
+.zoom-btn,
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 6px;
+  background-color: #f5f5f5;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #333;
+}
+
+.tool-btn:hover,
+.zoom-btn:hover,
+.action-btn:hover {
+  background-color: #e0e0e0;
+  border-color: #ccc;
+  transform: translateY(-1px);
+}
+
+.tool-btn.active {
+  background-color: #4a90e2;
+  border-color: #4a90e2;
+  color: white;
+}
+
+.tool-btn:active,
+.zoom-btn:active,
+.action-btn:active {
+  transform: translateY(0);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tool-btn svg,
+.zoom-btn svg,
+.action-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+}
+
+/* ============================================================================
+   COLOR PICKER
+   ============================================================================ */
+
+.color-palette {
+  display: flex;
+  gap: 5px;
+}
+
+.color-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 2px solid #e0e0e0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.color-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.color-btn.active {
+  border-color: #4a90e2;
+  border-width: 3px;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
+}
+
+.color-picker {
+  width: 36px;
+  height: 36px;
+  padding: 2px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #f5f5f5;
+}
+
+.color-picker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-picker::-webkit-color-swatch {
+  border: none;
+  border-radius: 4px;
+}
+
+/* ============================================================================
+   STROKE WIDTH SELECT
+   ============================================================================ */
+
+.stroke-width-select {
+  padding: 8px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: #f5f5f5;
+  color: #333;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.stroke-width-select:hover {
+  border-color: #ccc;
+}
+
+.stroke-width-select:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+}
+
+/* ============================================================================
+   ZOOM CONTROLS
+   ============================================================================ */
+
+.zoom-level {
+  min-width: 50px;
+  text-align: center;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+/* ============================================================================
+   INFO TEXT
+   ============================================================================ */
+
+.info-text {
+  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ============================================================================
+   LOADING SCREEN
+   ============================================================================ */
+
+#loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #ffffff;
+  z-index: 9999;
+  font-size: 24px;
+  color: #333;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #ccc;
+  border-top-color: #4a90e2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 20px;
+}
+
+@keyframes spin {
+  to { 
+    transform: rotate(360deg); 
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 1200px) {
+  .toolbar {
+    gap: 15px;
+    padding: 8px 15px;
+  }
+  
+  .toolbar-section {
+    gap: 8px;
+    padding-right: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    gap: 10px;
+    padding: 5px 10px;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .toolbar-section {
+    gap: 5px;
+    padding-right: 10px;
+    border-right: none;
+  }
+  
+  .toolbar-label {
+    display: none;
+  }
+  
+  .info-text {
+    font-size: 12px;
+  }
+}
+
+/* ============================================================================
+   ACCESSIBILITY
+   ============================================================================ */
+
+.tool-btn:focus,
+.zoom-btn:focus,
+.action-btn:focus,
+.color-btn:focus,
+.color-picker:focus,
+.stroke-width-select:focus {
+  outline: 3px solid #4a90e2;
+  outline-offset: 2px;
+}
+
+/* Keyboard navigation visible focus */
+*:focus-visible {
+  outline: 3px solid #4a90e2;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .toolbar {
+    border-bottom-width: 3px;
+  }
+  
+  .tool-btn,
+  .zoom-btn,
+  .action-btn {
+    border-width: 3px;
+  }
+  
+  .color-btn {
+    border-width: 3px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark mode support (optional, future enhancement) */
+@media (prefers-color-scheme: dark) {
+  #app {
+    background-color: #1a1a1a;
+  }
+  
+  .toolbar {
+    background-color: #2d2d2d;
+    border-bottom-color: #404040;
+    color: #e0e0e0;
+  }
+  
+  .toolbar-label {
+    color: #b0b0b0;
+  }
+  
+  .tool-btn,
+  .zoom-btn,
+  .action-btn {
+    background-color: #404040;
+    border-color: #505050;
+    color: #e0e0e0;
+  }
+  
+  .tool-btn:hover,
+  .zoom-btn:hover,
+  .action-btn:hover {
+    background-color: #505050;
+  }
+  
+  .tool-btn.active {
+    background-color: #4a90e2;
+    border-color: #4a90e2;
+  }
+  
+  .color-picker {
+    background-color: #404040;
+    border-color: #505050;
+  }
+  
+  .stroke-width-select {
+    background-color: #404040;
+    border-color: #505050;
+    color: #e0e0e0;
+  }
+  
+  .info-text {
+    color: #b0b0b0;
+  }
+  
+  #loading {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+  }
+}
+
+/* ============================================================================
+   PRINT STYLES
+   ============================================================================ */
+
+@media print {
+  .toolbar {
+    display: none;
+  }
+  
+  #loading {
+    display: none;
+  }
+}
