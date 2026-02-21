@@ -140,20 +140,34 @@ import { Point, CanvasMouseEvent } from '../types';
   }
 
   public zoom(scaleFactor: number, centerX?: number, centerY?: number): void {
-    const newScale = this.stage.scaleX() * scaleFactor;
+    const oldScale = this.stage.scaleX();
+    const newScale = oldScale * scaleFactor;
     
     if (newScale < 0.1 || newScale > 10) {
       return;
     }
     
     if (centerX !== undefined && centerY !== undefined) {
-      const oldPos = this.stage.getRelativePointerPosition();
+      // Get mouse position relative to stage before zooming
+      const mouse = this.stage.getPointerPosition();
+      if (!mouse) return;
+      
+      // Calculate position relative to stage origin (in stage coordinates)
+      const stageX = mouse.x - this.stage.x();
+      const stageY = mouse.y - this.stage.y();
+      
+      // Apply new scale
       this.stage.scale({ x: newScale, y: newScale });
-      const newPos = this.stage.getRelativePointerPosition();
-      const dx = newPos!.x - oldPos!.x;
-      const dy = newPos!.y - oldPos!.y;
-      this.stage.x(this.stage.x() - dx * newScale);
-      this.stage.y(this.stage.y() - dy * newScale);
+      
+      // Calculate new stage position to keep mouse over the same point
+      // After scaling, the stage-relative position becomes: (stageX, stageY) * newScale / oldScale
+      // We want: newStageX + (stageX * newScale / oldScale) = mouse.x
+      // So: newStageX = mouse.x - (stageX * newScale / oldScale)
+      const newX = mouse.x - (stageX * newScale / oldScale);
+      const newY = mouse.y - (stageY * newScale / oldScale);
+      
+      this.stage.x(newX);
+      this.stage.y(newY);
     } else {
       this.stage.scale({ x: newScale, y: newScale });
     }
