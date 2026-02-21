@@ -81,7 +81,12 @@ export class UIManager {
         <div class="toolbar-tools">
           <button class="tool-btn active" data-tool="hand" title="Hand Tool (H)">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0a2 2 0 0 0-2 2v0a2 2 0 0 0-2 2v0a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-5M12 18v-5m0 0h-2m2 0h2m-2 0h2"/>
+              <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0a2 2 0 0 0-2 2v0a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-5M12 18v-5m0 0h-2m2 0h2m-2 0h2"/>
+            </svg>
+          </button>
+          <button class="tool-btn" data-tool="selection" title="Selection Tool (S)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/>
             </svg>
           </button>
           <button class="tool-btn" data-tool="pen" title="Pen Tool (P)">
@@ -92,6 +97,31 @@ export class UIManager {
           <button class="tool-btn" data-tool="text" title="Text Tool (T)">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M4 7V4h16v3M9 20h6M12 4v16"/>
+            </svg>
+          </button>
+          <button class="tool-btn" data-tool="rectangle" title="Rectangle Tool (R)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            </svg>
+          </button>
+          <button class="tool-btn" data-tool="circle" title="Circle Tool (C)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="9"/>
+            </svg>
+          </button>
+          <button class="tool-btn" data-tool="diamond" title="Diamond Tool (D)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L22 12l-10 10L2 12z"/>
+            </svg>
+          </button>
+          <button class="tool-btn" data-tool="arrow" title="Arrow Tool (A)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+          <button class="tool-btn" data-tool="line" title="Line Tool (L)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="19" x2="19" y2="5"/>
             </svg>
           </button>
         </div>
@@ -304,6 +334,11 @@ export class UIManager {
       this.selectTool(ToolType.HAND, this.toolbar!.querySelector('[data-tool="hand"]') as HTMLElement);
     }
 
+    // S: Selection tool
+    if (e.key === 's') {
+      this.selectTool(ToolType.SELECTION, this.toolbar!.querySelector('[data-tool="selection"]') as HTMLElement);
+    }
+
     // P: Pen tool
     if (e.key === 'p') {
       this.selectTool(ToolType.PEN, this.toolbar!.querySelector('[data-tool="pen"]') as HTMLElement);
@@ -312,6 +347,31 @@ export class UIManager {
     // T: Text tool
     if (e.key === 't') {
       this.selectTool(ToolType.TEXT, this.toolbar!.querySelector('[data-tool="text"]') as HTMLElement);
+    }
+
+    // R: Rectangle tool
+    if (e.key === 'r') {
+      this.selectTool(ToolType.RECTANGLE, this.toolbar!.querySelector('[data-tool="rectangle"]') as HTMLElement);
+    }
+
+    // C: Circle tool
+    if (e.key === 'c') {
+      this.selectTool(ToolType.CIRCLE, this.toolbar!.querySelector('[data-tool="circle"]') as HTMLElement);
+    }
+
+    // D: Diamond tool
+    if (e.key === 'd') {
+      this.selectTool(ToolType.DIAMOND, this.toolbar!.querySelector('[data-tool="diamond"]') as HTMLElement);
+    }
+
+    // A: Arrow tool
+    if (e.key === 'a') {
+      this.selectTool(ToolType.ARROW, this.toolbar!.querySelector('[data-tool="arrow"]') as HTMLElement);
+    }
+
+    // L: Line tool
+    if (e.key === 'l') {
+      this.selectTool(ToolType.LINE, this.toolbar!.querySelector('[data-tool="line"]') as HTMLElement);
     }
 
     // 0: Reset zoom

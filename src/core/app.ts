@@ -160,6 +160,16 @@ export class App {
   private lastPanPosition: Point | null = null;
 
   /**
+   * Drawing state for shape tools (rectangle, circle, diamond, arrow, line)
+   * 
+   * Tracks the current shape being drawn.
+   */
+  private isDrawingShape: boolean = false;
+  private currentShape: Konva.Node | null = null;
+  private shapeStartPoint: Point | null = null;
+  private drawingLayer: Konva.Layer | null = null;
+
+  /**
    * Text input for text tool
    * 
    * The input element for adding text.
@@ -352,6 +362,13 @@ export class App {
       } else if (this.currentTool === ToolType.TEXT) {
         // Text tool: create text input
         this.createTextInput(screenPosition, canvasPosition);
+      } else if (this.currentTool === ToolType.RECTANGLE || 
+                 this.currentTool === ToolType.CIRCLE ||
+                 this.currentTool === ToolType.DIAMOND ||
+                 this.currentTool === ToolType.ARROW ||
+                 this.currentTool === ToolType.LINE) {
+        // Shape tools: start drawing shape
+        this.startShapeDrawing(canvasPosition);
       }
     }
   }
@@ -382,6 +399,17 @@ export class App {
     if (this.currentTool === ToolType.PEN && this.isDrawing) {
       this.continueDrawing(canvasPosition);
     }
+
+    /**
+     * Continue drawing shape if shape tool is active
+     */
+    if ((this.currentTool === ToolType.RECTANGLE || 
+         this.currentTool === ToolType.CIRCLE ||
+         this.currentTool === ToolType.DIAMOND ||
+         this.currentTool === ToolType.ARROW ||
+         this.currentTool === ToolType.LINE) && this.isDrawingShape) {
+      this.continueShapeDrawing(canvasPosition);
+    }
   }
 
   /**
@@ -403,6 +431,13 @@ export class App {
      */
     if (this.currentTool === ToolType.PEN && this.isDrawing) {
       this.finishDrawing();
+    }
+
+    /**
+     * Finish drawing shape if shape tool is active
+     */
+    if (this.isDrawingShape) {
+      this.finishShapeDrawing();
     }
   }
 
@@ -522,7 +557,237 @@ export class App {
   }
 
   /**
-   * Creates a text input at the specified position
+   * Starts drawing a shape (rectangle, circle, diamond, arrow, line)
+   * 
+   * @param position - The starting position
+   */
+  private startShapeDrawing(position: Point): void {
+    this.isDrawingShape = true;
+    this.shapeStartPoint = position;
+    
+    const stage = this.canvasManager!.getStage();
+    if (!stage) return;
+
+    // Get or create a drawing layer
+    this.drawingLayer = stage.findOne('#drawing-layer') as Konva.Layer;
+    if (!this.drawingLayer) {
+      this.drawingLayer = new Konva.Layer({ id: 'drawing-layer' });
+      stage.add(this.drawingLayer);
+    }
+
+    // Create the appropriate shape based on the current tool
+    let shape: Konva.Node;
+    
+    if (this.currentTool === ToolType.RECTANGLE) {
+      shape = new Konva.Rect({
+        x: position.x,
+        y: position.y,
+        width: 0,
+        height: 0,
+        stroke: this.currentColor,
+        strokeWidth: this.currentStrokeWidth,
+        fill: 'transparent',
+        draggable: false
+      });
+    } else if (this.currentTool === ToolType.CIRCLE) {
+      shape = new Konva.Ellipse({
+        x: position.x,
+        y: position.y,
+        radiusX: 0,
+        radiusY: 0,
+        stroke: this.currentColor,
+        strokeWidth: this.currentStrokeWidth,
+        fill: 'transparent',
+        draggable: false
+      });
+    } else if (this.currentTool === ToolType.DIAMOND) {
+      shape = new Konva.Tag({
+        x: position.x,
+        y: position.y,
+        width: 0,
+        height: 0,
+        rotation: 45,
+        stroke: this.currentColor,
+        strokeWidth: this.currentStrokeWidth,
+        fill: 'transparent',
+        draggable: false
+      });
+    } else if (this.currentTool === ToolType.ARROW) {
+      shape = new Konva.Arrow({
+        points: [position.x, position.y, position.x, position.y],
+        pointerLength: 10,
+        pointerWidth: 10,
+        stroke: this.currentColor,
+        strokeWidth: this.currentStrokeWidth,
+        fill: this.currentColor,
+        draggable: false
+      });
+    } else if (this.currentTool === ToolType.LINE) {
+      shape = new Konva.Line({
+        points: [position.x, position.y, position.x, position.y],
+        stroke: this.currentColor,
+        strokeWidth: this.currentStrokeWidth,
+        draggable: false
+      });
+    } else {
+      return;
+    }
+
+    this.currentShape = shape;
+    this.drawingLayer.add(shape);
+    this.drawingLayer.batchDraw();
+  }
+
+  /**
+   * Continues drawing a shape
+   * 
+   * @param position - The current position
+   */
+  private continueShapeDrawing(position: Point): void {
+    if (!this.currentShape || !this.shapeStartPoint || !this.isDrawingShape) return;
+
+    const startX = this.shapeStartPoint.x;
+    const startY = this.shapeStartPoint.y;
+    const endX = position.x;
+    const endY = position.y;
+
+    if (this.currentTool === ToolType.RECTANGLE) {
+      const rect = this.currentShape as Konva.Rect;
+      const x = Math.min(startX, endX);
+      const y = Math.min(startY, endY);
+      const width = Math.abs(endX - startX);
+      const height = Math.abs(endY - startY);
+      rect.x(x);
+      rect.y(y);
+      rect.width(width);
+      rect.height(height);
+    } else if (this.currentTool === ToolType.CIRCLE) {
+      const ellipse = this.currentShape as Konva.Ellipse;
+      const width = Math.abs(endX - startX);
+      const height = Math.abs(endY - startY);
+      ellipse.x(startX);
+      ellipse.y(startY);
+      ellipse.radiusX(width / 2);
+      ellipse.radiusY(height / 2);
+    } else if (this.currentTool === ToolType.DIAMOND) {
+      const tag = this.currentShape as Konva.Tag;
+      const width = Math.abs(endX - startX);
+      const height = Math.abs(endY - startY);
+      tag.x(startX);
+      tag.y(startY);
+      tag.width(width);
+      tag.height(height);
+    } else if (this.currentTool === ToolType.ARROW) {
+      const arrow = this.currentShape as Konva.Arrow;
+      arrow.points([startX, startY, endX, endY]);
+    } else if (this.currentTool === ToolType.LINE) {
+      const line = this.currentShape as Konva.Line;
+      line.points([startX, startY, endX, endY]);
+    }
+
+    this.drawingLayer!.batchDraw();
+  }
+
+  /**
+   * Finishes drawing a shape
+   */
+  private finishShapeDrawing(): void {
+    if (!this.currentShape || !this.shapeStartPoint || !this.isDrawingShape) return;
+
+    this.isDrawingShape = false;
+    
+    // Store the tool before we remove the shape
+    const tool = this.currentTool;
+    
+    // Remove the temporary shape from the drawing layer
+    if (this.drawingLayer) {
+      this.currentShape.remove();
+      this.drawingLayer.batchDraw();
+    }
+
+    let objType: ObjectType;
+    let position: Point;
+    let size: Size;
+    let properties: ObjectProperties;
+
+    if (tool === ToolType.RECTANGLE) {
+      objType = ObjectType.PROCESS;
+      const rect = this.currentShape as Konva.Rect;
+      position = { x: rect.x(), y: rect.y() };
+      size = { width: rect.width(), height: rect.height() };
+      properties = {
+        stroke: this.currentColor,
+        strokeWidth: this.currentStrokeWidth,
+        fill: 'transparent'
+      };
+    } else if (tool === ToolType.CIRCLE) {
+      objType = ObjectType.USE_CASE;
+      const ellipse = this.currentShape as Konva.Ellipse;
+      position = { x: ellipse.x() - ellipse.radiusX(), y: ellipse.y() - ellipse.radiusY() };
+      size = { width: ellipse.radiusX() * 2, height: ellipse.radiusY() * 2 };
+      properties = {
+        stroke: this.currentColor,
+        strokeWidth: this.currentStrokeWidth,
+        fill: 'transparent'
+      };
+    } else if (tool === ToolType.DIAMOND) {
+      objType = ObjectType.DECISION;
+      const tag = this.currentShape as Konva.Tag;
+      position = { x: tag.x() - tag.width() / 2, y: tag.y() - tag.height() / 2 };
+      size = { width: tag.width(), height: tag.height() };
+      properties = {
+        stroke: this.currentColor,
+        strokeWidth: this.currentStrokeWidth,
+        fill: 'transparent'
+      };
+    } else if (tool === ToolType.ARROW) {
+      objType = ObjectType.ARROW;
+      const arrow = this.currentShape as Konva.Arrow;
+      const points = arrow.points();
+      position = { x: points[0], y: points[1] };
+      size = { width: points[2] - points[0], height: points[3] - points[1] };
+      properties = {
+        stroke: this.currentColor,
+        strokeWidth: this.currentStrokeWidth,
+        fill: this.currentColor
+      };
+    } else if (tool === ToolType.LINE) {
+      objType = ObjectType.LINE;
+      const line = this.currentShape as Konva.Line;
+      const points = line.points();
+      position = { x: points[0], y: points[1] };
+      size = { width: points[2] - points[0], height: points[3] - points[1] };
+      properties = {
+        stroke: this.currentColor,
+        strokeWidth: this.currentStrokeWidth,
+        fill: 'transparent'
+      };
+    } else {
+      this.currentShape = null;
+      this.shapeStartPoint = null;
+      return;
+    }
+
+    // Create the final object through ObjectManager
+    const id = this.objectManager!.createObject(objType, position, size, properties);
+    
+    // Save to history
+    this.saveState();
+    
+    // Log change
+    this.logChange('Shape Created', `Created ${tool} shape`);
+    
+    // Update UI object count
+    this.uiManager?.updateObjectCount();
+    
+    console.log(`Finished drawing ${tool} with ID: ${id}`);
+    
+    this.currentShape = null;
+    this.shapeStartPoint = null;
+  }
+
+  /**
+   * Creates a text input at specified position
    * 
    * @param screenPosition - The screen position for the HTML input element
    * @param canvasPosition - The canvas position for the text object
