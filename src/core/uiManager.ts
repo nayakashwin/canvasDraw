@@ -317,79 +317,85 @@ export class UIManager {
    * Handles keyboard shortcuts
    */
   private handleKeyboard(e: KeyboardEvent): void {
-    // Ctrl+Z: Undo
+    // Check if text input is active - if so, skip tool shortcuts
+    const isTypingText = this.app['isTextInputActive']();
+
+    // Ctrl+Z: Undo (works even while typing)
     if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
       e.preventDefault();
       this.app.undo();
     }
 
-    // Ctrl+Y or Ctrl+Shift+Z: Redo
+    // Ctrl+Y or Ctrl+Shift+Z: Redo (works even while typing)
     if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && e.key === 'Z')) {
       e.preventDefault();
       this.app.redo();
     }
 
-    // Delete: Delete selected
-    if (e.key === 'Delete' || e.key === 'Backspace') {
+    // Delete: Delete selected (only when not typing)
+    if (!isTypingText && (e.key === 'Delete' || e.key === 'Backspace')) {
       e.preventDefault();
       this.app.deleteSelected();
       this.updateObjectCount();
     }
 
-    // Escape: Deselect all
+    // Escape: Deselect all (works even while typing to cancel text input)
     if (e.key === 'Escape') {
       this.app['objectManager'].deselectAll();
     }
 
-    // H: Hand tool
-    if (e.key === 'h') {
-      this.selectTool(ToolType.HAND, this.toolbar!.querySelector('[data-tool="hand"]') as HTMLElement);
-    }
+    // Tool shortcuts - only work when NOT typing in text input
+    if (!isTypingText) {
+      // H: Hand tool
+      if (e.key === 'h') {
+        this.selectTool(ToolType.HAND, this.toolbar!.querySelector('[data-tool="hand"]') as HTMLElement);
+      }
 
-    // S: Selection tool
-    if (e.key === 's') {
-      this.selectTool(ToolType.SELECTION, this.toolbar!.querySelector('[data-tool="selection"]') as HTMLElement);
-    }
+      // S: Selection tool
+      if (e.key === 's') {
+        this.selectTool(ToolType.SELECTION, this.toolbar!.querySelector('[data-tool="selection"]') as HTMLElement);
+      }
 
-    // P: Pen tool
-    if (e.key === 'p') {
-      this.selectTool(ToolType.PEN, this.toolbar!.querySelector('[data-tool="pen"]') as HTMLElement);
-    }
+      // P: Pen tool
+      if (e.key === 'p') {
+        this.selectTool(ToolType.PEN, this.toolbar!.querySelector('[data-tool="pen"]') as HTMLElement);
+      }
 
-    // T: Text tool
-    if (e.key === 't') {
-      this.selectTool(ToolType.TEXT, this.toolbar!.querySelector('[data-tool="text"]') as HTMLElement);
-    }
+      // T: Text tool
+      if (e.key === 't') {
+        this.selectTool(ToolType.TEXT, this.toolbar!.querySelector('[data-tool="text"]') as HTMLElement);
+      }
 
-    // R: Rectangle tool
-    if (e.key === 'r') {
-      this.selectTool(ToolType.RECTANGLE, this.toolbar!.querySelector('[data-tool="rectangle"]') as HTMLElement);
-    }
+      // R: Rectangle tool
+      if (e.key === 'r') {
+        this.selectTool(ToolType.RECTANGLE, this.toolbar!.querySelector('[data-tool="rectangle"]') as HTMLElement);
+      }
 
-    // C: Circle tool
-    if (e.key === 'c') {
-      this.selectTool(ToolType.CIRCLE, this.toolbar!.querySelector('[data-tool="circle"]') as HTMLElement);
-    }
+      // C: Circle tool
+      if (e.key === 'c') {
+        this.selectTool(ToolType.CIRCLE, this.toolbar!.querySelector('[data-tool="circle"]') as HTMLElement);
+      }
 
-    // D: Diamond tool
-    if (e.key === 'd') {
-      this.selectTool(ToolType.DIAMOND, this.toolbar!.querySelector('[data-tool="diamond"]') as HTMLElement);
-    }
+      // D: Diamond tool
+      if (e.key === 'd') {
+        this.selectTool(ToolType.DIAMOND, this.toolbar!.querySelector('[data-tool="diamond"]') as HTMLElement);
+      }
 
-    // A: Arrow tool
-    if (e.key === 'a') {
-      this.selectTool(ToolType.ARROW, this.toolbar!.querySelector('[data-tool="arrow"]') as HTMLElement);
-    }
+      // A: Arrow tool
+      if (e.key === 'a') {
+        this.selectTool(ToolType.ARROW, this.toolbar!.querySelector('[data-tool="arrow"]') as HTMLElement);
+      }
 
-    // L: Line tool
-    if (e.key === 'l') {
-      this.selectTool(ToolType.LINE, this.toolbar!.querySelector('[data-tool="line"]') as HTMLElement);
-    }
+      // L: Line tool
+      if (e.key === 'l') {
+        this.selectTool(ToolType.LINE, this.toolbar!.querySelector('[data-tool="line"]') as HTMLElement);
+      }
 
-    // 0: Reset zoom
-    if (e.key === '0') {
-      this.app['canvasManager'].setZoom(1.0);
-      this.updateZoomDisplay(1.0);
+      // 0: Reset zoom
+      if (e.key === '0') {
+        this.app['canvasManager'].setZoom(1.0);
+        this.updateZoomDisplay(1.0);
+      }
     }
   }
 

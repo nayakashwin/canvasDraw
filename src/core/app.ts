@@ -812,14 +812,19 @@ export class App {
     if (!stage) return;
 
     const container = stage.container();
+    const containerRect = container.getBoundingClientRect();
+    
+    // Calculate position relative to container
+    const relativeX = screenPosition.x - containerRect.left;
+    const relativeY = screenPosition.y - containerRect.top;
     
     // Create text input element positioned at screen coordinates
     this.textInput = document.createElement('input');
     this.textInput.type = 'text';
     this.textInput.placeholder = 'Enter text...';
     this.textInput.style.position = 'absolute';
-    this.textInput.style.left = screenPosition.x + 'px';
-    this.textInput.style.top = screenPosition.y + 'px';
+    this.textInput.style.left = relativeX + 'px';
+    this.textInput.style.top = (relativeY + 10) + 'px'; // 10px offset to appear below cursor
     this.textInput.style.padding = '5px';
     this.textInput.style.fontSize = '16px';
     this.textInput.style.fontFamily = 'Arial, sans-serif';
@@ -1236,6 +1241,18 @@ export class App {
    */
   public canRedo(): boolean {
     return this.historyManager?.canRedo() || false;
+  }
+
+  /**
+   * Checks if the text input is currently active and focused
+   * 
+   * This is used to prevent tool shortcuts from triggering while typing
+   * in the text input box.
+   * 
+   * @returns true if text input is active and focused
+   */
+  public isTextInputActive(): boolean {
+    return this.textInput !== null && document.activeElement === this.textInput;
   }
 
   /**
