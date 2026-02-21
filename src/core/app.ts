@@ -540,6 +540,9 @@ export class App {
         properties
       );
       
+      // Set up drag tracking for the new object
+      this.objectManager.setupDragTracking(id, () => this.saveState());
+      
       // Save the drawing to history
       this.saveState();
       
@@ -673,10 +676,15 @@ export class App {
       const tag = this.currentShape as Konva.Tag;
       const width = Math.abs(endX - startX);
       const height = Math.abs(endY - startY);
+      
+      // For a diamond with equal sides, we need a square bounding box
+      // Take the maximum dimension to ensure all sides are equal
+      const size = Math.max(width, height);
+      
       tag.x(startX);
       tag.y(startY);
-      tag.width(width);
-      tag.height(height);
+      tag.width(size);
+      tag.height(size);
     } else if (this.currentTool === ToolType.ARROW) {
       const arrow = this.currentShape as Konva.Arrow;
       arrow.points([startX, startY, endX, endY]);
@@ -769,6 +777,9 @@ export class App {
 
     // Create the final object through ObjectManager
     const id = this.objectManager!.createObject(objType, position, size, properties);
+    
+    // Set up drag tracking for the new object
+    this.objectManager.setupDragTracking(id, () => this.saveState());
     
     // Save to history
     this.saveState();
@@ -912,6 +923,10 @@ export class App {
     }
 
     const id = this.objectManager.createObject(type, position, size, properties);
+    
+    // Set up drag tracking for the newly created object
+    this.objectManager.setupDragTracking(id, () => this.saveState());
+    
     this.saveState();
     
     // Log change
@@ -1164,6 +1179,9 @@ export class App {
           obj.properties
         );
       });
+
+      // Set up drag tracking for all restored objects
+      this.objectManager.setupAllDragTracking(() => this.saveState());
     }
 
     /**

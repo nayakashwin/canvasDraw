@@ -95,6 +95,21 @@ export class ObjectManager {
   private selectedIds: Set<string> = new Set();
   
   /**
+   * Map of initial positions before drag for undo functionality
+   * 
+   * This tracks where objects were before they started moving, so we can
+   * save state properly when the drag completes.
+   */
+  private dragStartPositions: Map<string, Point> = new Map();
+  
+  /**
+   * Callback for when an object move is completed
+   * 
+   * This is called when an object finishes being dragged, to save state.
+   */
+  private onObjectMoveComplete?: () => void;
+  
+  /**
    * Creates a new ObjectManager instance
    * 
    * @param canvasManager - The CanvasManager instance to use for rendering
@@ -663,5 +678,126 @@ export class ObjectManager {
     this.nodes.clear();
     this.selectedIds.clear();
     this.canvasManager.clear();
+  }
+
+  /**
+   * Sets up drag event listeners for an object
+   * 
+   * This enables tracking of object movements for undo functionality.
+   * Call this method after creating a node to enable drag tracking.
+   * 
+   * @param id - The ID of the object to set up drag tracking for
+   * @param onMoveComplete - Callback to invoke when drag completes
+   * 
+   * USAGE EXAMPLE:
+   * objManager.setupDragTracking('obj_123', () => {
+   *   this.saveState(); // Save state when object is moved
+   * });
+   * 
+   * BEGINNER TIP:
+   * This method sets up event listeners that track when an object
+   * starts being dragged and when it finishes. This allows us to
+   * save the state to history when the movement is complete.
+   */
+  public setupDragTracking(id: string, onMoveComplete: () => void): void {
+    const node = this.nodes.get(id);
+    if (!node) return;
+
+    // Store the callback for later use
+    this.onObjectMoveComplete = onMoveComplete;
+
+    // Set up drag start event
+    node.on('dragstart', () => {
+      // Store the initial position before drag starts
+      const obj = this.objects.get(id);
+      if (obj) {
+        this.dragStartPositions.set(id, { ...obj.position });
+      }
+    });
+
+    // Set up drag end event
+    node.on('dragend', () => {
+      // Update the object's position in our data model
+      const obj = this.objects.get(id);
+      const node = this.nodes.get(id);
+      
+      if (obj && node) {
+        // Get the new position from the Konva node
+        const newPosition: Point = {
+          x: node.x(),
+          y: node.y()
+        };
+
+        // Update the object's position
+        obj.position = newPosition;
+        obj.updatedAt = new Date();
+
+        // Check if the position actually changed
+        const startPos = this.dragStartPositions.get(id);
+        if (startPos && (startPos.x !== newPosition.x || startPos.y !== newPosition.y)) {
+          // Position changed, invoke the callback to save state
+          if (this.onObjectMoveComplete) {
+            this.onObjectMoveComplete();
+          }
+        }
+
+        // Clear the stored start position
+        this.dragStartPositions.delete(id);
+      }
+    });
+  }
+
+  /**
+   * Sets up drag tracking for all existing objects
+   * 
+   * This should be called when initializing the application to ensure
+   * all objects can be tracked for undo functionality.
+   * 
+   * @param onMoveComplete - Callback to invoke when any object drag completes
+   * 
+   * USAGE EXAMPLE:
+   * objManager.setupAllDragTracking(() => {
+   *   this.saveState();
+   * });
+   * 
+   * BEGINNER TIP:
+   * Call this method during initialization to ensure all objects
+   * on the canvas can have their movements tracked for undo.
+   */
+  public setupAllDragTracking(onMoveComplete: () => void): void {
+    // Set up drag tracking for all existing objects
+    this.objects.forEach((_, id) => {
+      this.setupDragTracking(id, onMoveComplete);
+    });
+  }
+
+  /**
+   * Updates the internal position of an object without triggering drag events
+   * 
+   * This is used when restoring state, to update positions without
+   * triggering drag event handlers (which would create circular history).
+   * 
+   * @param id - The ID of the object to update
+   * @param newPosition - The new position
+   * 
+   * USAGE EXAMPLE:
+   * objManager.updateObjectPosition('obj_123', { x: 200, y: 300 });
+   * 
+   * BEGINNER TIP:
+   * Use this when programmatically moving objects (like during undo/redo)
+   * to avoid triggering drag events that would create new history entries.
+   */
+  public updateObjectPosition(id: string, newPosition: Point): void {
+    const obj = this.objects.get(id);
+    const node = this.nodes.get(id);
+    
+    if (obj && node) {
+      // Update the internal object position
+      obj.position = { ...newPosition };
+      
+      // Update the Konva node position (without triggering events)
+      node.x(newPosition.x);
+      node.y(newPosition.y);
+    }
   }
 }
