@@ -634,7 +634,7 @@ export class App {
     }
 
     this.currentShape = shape;
-    this.drawingLayer.add(shape);
+    this.drawingLayer.add(shape as any);
     this.drawingLayer.batchDraw();
   }
 
@@ -696,15 +696,8 @@ export class App {
 
     this.isDrawingShape = false;
     
-    // Store the tool before we remove the shape
+    // Store the tool and extract shape properties BEFORE removing the shape
     const tool = this.currentTool;
-    
-    // Remove the temporary shape from the drawing layer
-    if (this.drawingLayer) {
-      this.currentShape.remove();
-      this.drawingLayer.batchDraw();
-    }
-
     let objType: ObjectType;
     let position: Point;
     let size: Size;
@@ -766,6 +759,12 @@ export class App {
       this.currentShape = null;
       this.shapeStartPoint = null;
       return;
+    }
+
+    // Remove the temporary shape from the drawing layer
+    if (this.drawingLayer) {
+      this.currentShape.remove();
+      this.drawingLayer.batchDraw();
     }
 
     // Create the final object through ObjectManager
