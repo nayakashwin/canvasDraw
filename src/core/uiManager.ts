@@ -41,9 +41,9 @@ export class UIManager {
   private toolbar: HTMLElement | null = null;
   private colorPicker: HTMLInputElement | null = null;
   private strokeWidthSelect: HTMLSelectElement | null = null;
+  private backgroundColorPicker: HTMLInputElement | null = null;
   private currentToolDisplay: HTMLElement | null = null;
   private zoomDisplay: HTMLElement | null = null;
-  private historyList: HTMLElement | null = null;
 
   constructor(containerId: string, app: App) {
     this.containerId = containerId;
@@ -58,7 +58,6 @@ export class UIManager {
   public initialize(): void {
     this.createToolbar();
     this.setupEventListeners();
-    this.setupHistoryPanel();
     console.log('UI Manager initialized');
   }
 
@@ -145,6 +144,11 @@ export class UIManager {
       </div>
 
       <div class="toolbar-section">
+        <span class="toolbar-label">Background</span>
+        <input type="color" id="background-color-picker" value="#ffffff" title="Choose Background Color" class="color-picker"/>
+      </div>
+
+      <div class="toolbar-section">
         <span class="toolbar-label">Stroke</span>
         <select id="stroke-width" class="stroke-width-select" title="Stroke Width">
           <option value="1">Thin (1px)</option>
@@ -212,6 +216,7 @@ export class UIManager {
 
     // Cache references to UI elements
     this.colorPicker = this.toolbar.querySelector('#color-picker') as HTMLInputElement;
+    this.backgroundColorPicker = this.toolbar.querySelector('#background-color-picker') as HTMLInputElement;
     this.strokeWidthSelect = this.toolbar.querySelector('#stroke-width') as HTMLSelectElement;
     this.currentToolDisplay = this.toolbar.querySelector('#current-tool') as HTMLElement;
     this.zoomDisplay = this.toolbar.querySelector('#zoom-level') as HTMLElement;
@@ -258,6 +263,13 @@ export class UIManager {
         this.setColor(this.colorPicker!.value);
         // Remove active state from palette buttons
         colorButtons.forEach(b => b.classList.remove('active'));
+      });
+    }
+
+    // Background color picker
+    if (this.backgroundColorPicker) {
+      this.backgroundColorPicker.addEventListener('input', () => {
+        this.setBackgroundColor(this.backgroundColorPicker!.value);
       });
     }
 
@@ -424,6 +436,14 @@ export class UIManager {
   }
 
   /**
+   * Sets background color
+   */
+  private setBackgroundColor(color: string): void {
+    this.app['canvasManager'].setBackgroundColor(color);
+    console.log(`Background color changed to: ${color}`);
+  }
+
+  /**
    * Updates zoom display
    */
   public updateZoomDisplay(zoom: number): void {
@@ -442,65 +462,5 @@ export class UIManager {
       const count = this.app.getObjectCount();
       infoText.textContent = `Objects: ${count}`;
     }
-  }
-
-  /**
-   * Sets up the history panel
-   */
-  private setupHistoryPanel(): void {
-    // Get reference to history list
-    this.historyList = document.getElementById('history-list');
-    
-    // Subscribe to change history updates
-    this.app.onChangeHistory((history: any[]) => {
-      this.renderHistory(history);
-    });
-
-    // Set up clear history button
-    const clearBtn = document.getElementById('clear-history');
-    if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to clear the history log?')) {
-          this.app.clearChangeHistory();
-        }
-      });
-    }
-  }
-
-  /**
-   * Renders the history list
-   */
-  private renderHistory(history: Array<{ timestamp: number; action: string; details: string }>): void {
-    if (!this.historyList) return;
-
-    // Clear current list
-    this.historyList.innerHTML = '';
-
-    // Show empty state if no history
-    if (history.length === 0) {
-      this.historyList.innerHTML = `
-        <div class="history-item empty-state">
-          No changes yet
-        </div>
-      `;
-      return;
-    }
-
-    // Render history items (newest first)
-    const sortedHistory = [...history].reverse();
-    sortedHistory.forEach(change => {
-      const item = document.createElement('div');
-      item.className = 'history-item';
-      
-      const time = new Date(change.timestamp).toLocaleTimeString();
-      
-      item.innerHTML = `
-        <div class="history-item-time">${time}</div>
-        <div class="history-item-action">${change.action}</div>
-        <div class="history-item-details">${change.details}</div>
-      `;
-      
-      this.historyList.appendChild(item);
-    });
   }
 }

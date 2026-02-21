@@ -39,7 +39,7 @@ import { Point, CanvasMouseEvent } from '../types';
 /**
  * CanvasManager: Manages all canvas operations using Konva.js
  */
-export class CanvasManager {
+  export class CanvasManager {
   private stage: Konva.Stage;
   private layer: Konva.Layer;
   private transformer: Konva.Transformer;
@@ -47,6 +47,7 @@ export class CanvasManager {
   private currentPan: Point = { x: 0, y: 0 };
   private containerId: string;
   private eventListeners: Map<string, Function[]> = new Map();
+  private backgroundColor: string = '#ffffff';
 
   constructor(containerId: string) {
     this.containerId = containerId;
@@ -236,6 +237,18 @@ export class CanvasManager {
 
   public getTransformer(): Konva.Transformer {
     return this.transformer;
+  }
+
+  public setBackgroundColor(color: string): void {
+    this.backgroundColor = color;
+    const container = document.getElementById(this.containerId);
+    if (container) {
+      container.style.backgroundColor = color;
+    }
+  }
+
+  public getBackgroundColor(): string {
+    return this.backgroundColor;
   }
 
   public on(eventName: string, callback: Function): void {
