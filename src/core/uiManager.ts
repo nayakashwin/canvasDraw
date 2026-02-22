@@ -158,6 +158,36 @@ export class UIManager {
         </select>
       </div>
 
+      <div class="toolbar-section" id="text-section">
+        <span class="toolbar-label">Text</span>
+        <select id="font-family" class="font-family-select" title="Font Family">
+          <option value="Arial, sans-serif" selected>Arial</option>
+          <option value="Times New Roman, serif">Times New Roman</option>
+          <option value="Georgia, serif">Georgia</option>
+          <option value="Courier New, monospace">Courier New</option>
+          <option value="Verdana, sans-serif">Verdana</option>
+          <option value="Tahoma, sans-serif">Tahoma</option>
+          <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
+          <option value="Comic Sans MS, cursive">Comic Sans MS</option>
+        </select>
+        <select id="font-size" class="font-size-select" title="Font Size">
+          <option value="12">12px</option>
+          <option value="14">14px</option>
+          <option value="16" selected>16px</option>
+          <option value="18">18px</option>
+          <option value="20">20px</option>
+          <option value="24">24px</option>
+          <option value="28">28px</option>
+          <option value="32">32px</option>
+          <option value="36">36px</option>
+          <option value="40">40px</option>
+          <option value="48">48px</option>
+          <option value="56">56px</option>
+          <option value="64">64px</option>
+          <option value="72">72px</option>
+        </select>
+      </div>
+
       <div class="toolbar-section">
         <span class="toolbar-label">Zoom</span>
         <button class="zoom-btn" id="zoom-out" title="Zoom Out (-)">
@@ -278,6 +308,23 @@ export class UIManager {
       this.strokeWidthSelect.addEventListener('change', () => {
         const width = parseInt(this.strokeWidthSelect!.value);
         this.app['setStrokeWidth'](width);
+      });
+    }
+
+    // Font family
+    const fontFamilySelect = this.toolbar.querySelector('#font-family') as HTMLSelectElement;
+    if (fontFamilySelect) {
+      fontFamilySelect.addEventListener('change', () => {
+        this.app['setFontFamily'](fontFamilySelect.value);
+      });
+    }
+
+    // Font size
+    const fontSizeSelect = this.toolbar.querySelector('#font-size') as HTMLSelectElement;
+    if (fontSizeSelect) {
+      fontSizeSelect.addEventListener('change', () => {
+        const size = parseInt(fontSizeSelect.value);
+        this.app['setFontSize'](size);
       });
     }
 

@@ -143,6 +143,20 @@ export class App {
   private currentStrokeWidth: number = 2;
 
   /**
+   * Currently selected font family
+   * 
+   * Default is Arial.
+   */
+  private currentFontFamily: string = 'Arial, sans-serif';
+
+  /**
+   * Currently selected font size
+   * 
+   * Default is 16 pixels.
+   */
+  private currentFontSize: number = 16;
+
+  /**
    * Drawing state for pen tool
    * 
    * Tracks the current drawing when using the pen tool.
@@ -826,8 +840,8 @@ export class App {
     this.textInput.style.left = relativeX + 'px';
     this.textInput.style.top = (relativeY + 10) + 'px'; // 10px offset to appear below cursor
     this.textInput.style.padding = '5px';
-    this.textInput.style.fontSize = '16px';
-    this.textInput.style.fontFamily = 'Arial, sans-serif';
+    this.textInput.style.fontSize = this.currentFontSize + 'px';
+    this.textInput.style.fontFamily = this.currentFontFamily;
     this.textInput.style.border = '1px solid #ccc';
     this.textInput.style.borderRadius = '4px';
     this.textInput.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
@@ -915,8 +929,8 @@ export class App {
         strokeWidth: this.currentStrokeWidth,
         fill: 'transparent',
         text: text,
-        fontSize: 16,
-        fontFamily: 'Arial, sans-serif'
+        fontSize: this.currentFontSize,
+        fontFamily: this.currentFontFamily
       };
     } else {
       // For other objects, use ObjectProperties
@@ -1099,6 +1113,50 @@ export class App {
   public setStrokeWidth(width: number): void {
     this.currentStrokeWidth = width;
     console.log(`Stroke width changed to: ${width}px`);
+  }
+
+  /**
+   * Sets the current font family
+   * 
+   * @param fontFamily - The font family to use (e.g., 'Arial, sans-serif')
+   * 
+   * USAGE EXAMPLE:
+   * app.setFontFamily('Times New Roman, serif');
+   */
+  public setFontFamily(fontFamily: string): void {
+    this.currentFontFamily = fontFamily;
+    console.log(`Font family changed to: ${fontFamily}`);
+  }
+
+  /**
+   * Gets the current font family
+   * 
+   * @returns The current font family
+   */
+  public getFontFamily(): string {
+    return this.currentFontFamily;
+  }
+
+  /**
+   * Sets the current font size
+   * 
+   * @param fontSize - The font size in pixels
+   * 
+   * USAGE EXAMPLE:
+   * app.setFontSize(24);
+   */
+  public setFontSize(fontSize: number): void {
+    this.currentFontSize = fontSize;
+    console.log(`Font size changed to: ${fontSize}px`);
+  }
+
+  /**
+   * Gets the current font size
+   * 
+   * @returns The current font size in pixels
+   */
+  public getFontSize(): number {
+    return this.currentFontSize;
   }
 
   /**
