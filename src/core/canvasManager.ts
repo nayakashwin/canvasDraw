@@ -75,7 +75,8 @@ import { Point, CanvasMouseEvent } from '../types';
       anchorFill: '#ffffff',
       anchorSize: 10,
       borderStroke: '#0099ff',
-      borderDash: [3, 3],
+      borderStrokeWidth: 2,
+      borderDash: [6, 6],
       rotateEnabled: true,
       enabledAnchors: [
         'top-left', 'top-center', 'top-right',
@@ -147,10 +148,34 @@ import { Point, CanvasMouseEvent } from '../types';
       return;
     }
     
+    // Store currently selected transformer nodes before zooming
+    // This allows us to restore the selection after zoom completes
+    let selectedNodes: Konva.Node[] = [];
+    try {
+      selectedNodes = this.transformer.nodes();
+      // Clear the transformer nodes before zooming to prevent
+      // the "anchor is undefined" error that occurs when the transformer
+      // tries to update its anchors during the zoom operation
+      this.transformer.nodes([]);
+    } catch (error) {
+      console.warn('Error clearing transformer nodes before zoom:', error);
+      selectedNodes = [];
+    }
+    
     if (centerX !== undefined && centerY !== undefined) {
       // Get mouse position relative to stage before zooming
       const mouse = this.stage.getPointerPosition();
-      if (!mouse) return;
+      if (!mouse) {
+        // If we cleared the transformer but can't zoom, restore selection
+        if (selectedNodes.length > 0) {
+          try {
+            this.transformer.nodes(selectedNodes);
+          } catch (error) {
+            console.warn('Error restoring transformer nodes:', error);
+          }
+        }
+        return;
+      }
       
       // Calculate position relative to stage origin (in stage coordinates)
       const stageX = mouse.x - this.stage.x();
@@ -176,6 +201,31 @@ import { Point, CanvasMouseEvent } from '../types';
     this.currentPan = { x: this.stage.x(), y: this.stage.y() };
     this.layer.batchDraw();
     this.emit('zoom', { zoom: this.currentZoom, pan: this.currentPan });
+    
+    // Restore the transformer selection after zoom completes
+    // Use requestAnimationFrame to ensure the zoom is fully applied
+    // before re-attaching the transformer
+    if (selectedNodes.length > 0) {
+      requestAnimationFrame(() => {
+        try {
+          // Validate nodes are still valid before re-attaching
+          const validNodes = selectedNodes.filter(node => {
+            try {
+              return node && node.getLayer() && node.draggable();
+            } catch {
+              return false;
+            }
+          });
+          
+          if (validNodes.length > 0) {
+            this.transformer.nodes(validNodes);
+          }
+        } catch (error) {
+          console.warn('Error restoring transformer selection after zoom:', error);
+          // If restoration fails, leave the transformer cleared to prevent further errors
+        }
+      });
+    }
   }
 
   public pan(dx: number, dy: number): void {

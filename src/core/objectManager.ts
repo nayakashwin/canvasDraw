@@ -103,6 +103,21 @@ export class ObjectManager {
   private dragStartPositions: Map<string, Point> = new Map();
   
   /**
+   * Map of previous shadow states for objects
+   * 
+   * This tracks the shadow state of objects before they were selected,
+   * so we can restore the original state when deselected.
+   */
+  private previousShadowStates: Map<string, {
+    shadowColor?: string | null;
+    shadowBlur?: number | null;
+    shadowOffsetX?: number | null;
+    shadowOffsetY?: number | null;
+    shadowOpacity?: number | null;
+    shadowEnabled?: boolean | null;
+  }> = new Map();
+  
+  /**
    * Callback for when an object move is completed
    * 
    * This is called when an object finishes being dragged, to save state.
@@ -552,8 +567,77 @@ export class ObjectManager {
    * Call this when the user clicks on empty canvas space.
    */
   public deselectAll(): void {
+    // Remove shadows from all nodes
+    this.nodes.forEach((node, id) => {
+      this.removeDropShadow(node, id);
+    });
+    
     this.selectedIds.clear();
     this.canvasManager.deselectAll();
+  }
+
+  /**
+   * Applies a drop shadow to a node to indicate selection
+   * 
+   * @param node - The Konva node to apply shadow to
+   * @param id - The object ID (for tracking shadow state)
+   */
+  private applyDropShadow(node: Konva.Node, id: string): void {
+    // Store the current shadow state before applying the selection shadow
+    this.previousShadowStates.set(id, {
+      shadowColor: (node as any).shadowColor(),
+      shadowBlur: (node as any).shadowBlur(),
+      shadowOffsetX: (node as any).shadowOffsetX(),
+      shadowOffsetY: (node as any).shadowOffsetY(),
+      shadowOpacity: (node as any).shadowOpacity(),
+      shadowEnabled: (node as any).shadowEnabled()
+    });
+
+    // Apply a nice drop shadow for selection
+    (node as any).shadowColor('rgba(0, 0, 0, 0.4)');
+    (node as any).shadowBlur(15);
+    (node as any).shadowOffsetX(5);
+    (node as any).shadowOffsetY(5);
+    (node as any).shadowOpacity(0.6);
+    (node as any).shadowEnabled(true);
+  }
+
+  /**
+   * Removes the drop shadow from a node (restores previous state)
+   * 
+   * @param node - The Konva node to remove shadow from
+   * @param id - The object ID (for retrieving shadow state)
+   */
+  private removeDropShadow(node: Konva.Node, id: string): void {
+    const previousState = this.previousShadowStates.get(id);
+    
+    if (previousState) {
+      // Restore the previous shadow state
+      if (previousState.shadowColor !== undefined) {
+        (node as any).shadowColor(previousState.shadowColor);
+      }
+      if (previousState.shadowBlur !== undefined) {
+        (node as any).shadowBlur(previousState.shadowBlur);
+      }
+      if (previousState.shadowOffsetX !== undefined) {
+        (node as any).shadowOffsetX(previousState.shadowOffsetX);
+      }
+      if (previousState.shadowOffsetY !== undefined) {
+        (node as any).shadowOffsetY(previousState.shadowOffsetY);
+      }
+      if (previousState.shadowOpacity !== undefined) {
+        (node as any).shadowOpacity(previousState.shadowOpacity);
+      }
+      if (previousState.shadowEnabled !== undefined) {
+        (node as any).shadowEnabled(previousState.shadowEnabled);
+      }
+      
+      // Remove the stored shadow state
+      this.previousShadowStates.delete(id);
+    } else {
+      // If no previous state was stored, just disable the shadow
+      (node as any).shadowEnabled(false);
+    }
   }
 
   /**
@@ -563,6 +647,7 @@ export class ObjectManager {
    * selection handles on the canvas.
    * 
    * FIXED: Added comprehensive validation to prevent "anchor is undefined" error
+   * FIXED: Added drop shadow effect for selected objects
    */
   private updateSelection(): void {
     /**
@@ -571,6 +656,18 @@ export class ObjectManager {
     const selectedNodes = Array.from(this.selectedIds)
       .map(id => this.nodes.get(id))
       .filter((node): node is Konva.Node => node !== undefined);
+    
+    /**
+     * Remove shadows from all nodes first (reset state)
+     * Then apply shadows to selected nodes
+     */
+    this.nodes.forEach((node, id) => {
+      if (!this.selectedIds.has(id)) {
+        this.removeDropShadow(node, id);
+      } else {
+        this.applyDropShadow(node, id);
+      }
+    });
     
     /**
      * Update the transformer
