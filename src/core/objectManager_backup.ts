@@ -561,8 +561,6 @@ export class ObjectManager {
    * 
    * This is called whenever the selection changes to update the visual
    * selection handles on the canvas.
-   * 
-   * FIXED: Added comprehensive validation to prevent "anchor is undefined" error
    */
   private updateSelection(): void {
     /**
@@ -578,17 +576,9 @@ export class ObjectManager {
     if (selectedNodes.length > 0) {
       /**
        * Additional validation: Ensure nodes are properly initialized and in the layer
-       * This prevents the "anchor is undefined" error that occurs when
-       * the transformer tries to attach to invalid or incomplete nodes.
        */
       const validNodes = selectedNodes.filter(node => {
         try {
-          // Check if node exists and is valid
-          if (!node || !node.name()) {
-            console.warn('Invalid node or node has no name');
-            return false;
-          }
-          
           // Check if node has a parent layer
           const parent = node.getParent();
           if (!parent) {
@@ -596,30 +586,10 @@ export class ObjectManager {
             return false;
           }
           
-          // For groups, check if they have children and those children are valid
-          if (node instanceof Konva.Group) {
-            const children = node.getChildren();
-            if (children.length === 0) {
-              console.warn(`Group node ${node.name()} has no children, skipping transformer attachment`);
-              return false;
-            }
-            
-            // Check if all children are valid
-            const allChildrenValid = children.every(child => {
-              try {
-                if (!child) {
-                  return false;
-                }
-                return true;
-              } catch {
-                return false;
-              }
-            });
-            
-            if (!allChildrenValid) {
-              console.warn(`Group node ${node.name()} has invalid children, skipping transformer attachment`);
-              return false;
-            }
+          // For groups, check if they have children
+          if (node instanceof Konva.Group && node.getChildren().length === 0) {
+            console.warn(`Group node ${node.name()} has no children, skipping transformer attachment`);
+            return false;
           }
           
           // Ensure the node is draggable (required for transformer)
@@ -640,16 +610,9 @@ export class ObjectManager {
             }
           }
           
-          // Check if node is still in the layer
-          const layer = node.getLayer();
-          if (!layer) {
-            console.warn(`Node ${node.name()} is not in a layer, skipping transformer attachment`);
-            return false;
-          }
-          
           return true;
         } catch (error) {
-          console.error(`Error validating node ${node?.name()}:`, error);
+          console.error(`Error validating node ${node.name()}:`, error);
           return false;
         }
       });
@@ -657,25 +620,7 @@ export class ObjectManager {
       // Only attach transformer if we have valid nodes
       if (validNodes.length > 0) {
         try {
-          // Use requestAnimationFrame to ensure the DOM is ready and the node is fully rendered
-          // This prevents race conditions where the transformer tries to attach
-          // before the node is ready
-          requestAnimationFrame(() => {
-            // Double-check that all nodes are still valid (they might have been deleted in the meantime)
-            const stillValidNodes = validNodes.filter(node => {
-              try {
-                return node && node.getLayer() && node.draggable();
-              } catch {
-                return false;
-              }
-            });
-            
-            if (stillValidNodes.length > 0) {
-              this.canvasManager.selectNode(stillValidNodes);
-            } else {
-              this.canvasManager.deselectAll();
-            }
-          });
+          this.canvasManager.selectNode(validNodes);
         } catch (error) {
           console.error('Error attaching transformer to nodes:', error);
           // If transformer fails, deselect to prevent further errors

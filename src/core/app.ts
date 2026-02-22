@@ -471,7 +471,7 @@ export class App {
          this.currentTool === ToolType.DIAMOND ||
          this.currentTool === ToolType.ARROW ||
          this.currentTool === ToolType.LINE) && this.isDrawingShape) {
-      this.continueShapeDrawing(canvasPosition);
+      this.continueShapeDrawing(canvasPosition, event);
     }
   }
 
@@ -709,7 +709,7 @@ export class App {
    * 
    * @param position - The current position
    */
-  private continueShapeDrawing(position: Point): void {
+  private continueShapeDrawing(position: Point, event?: any): void {
     if (!this.currentShape || !this.shapeStartPoint || !this.isDrawingShape) return;
 
     const startX = this.shapeStartPoint.x;
@@ -750,10 +750,34 @@ export class App {
       tag.height(size);
     } else if (this.currentTool === ToolType.ARROW) {
       const arrow = this.currentShape as Konva.Arrow;
-      arrow.points([startX, startY, endX, endY]);
+      // Apply constraints based on modifier keys
+      let constrainedEndX = endX;
+      let constrainedEndY = endY;
+      
+      if (event && event.shiftKey) {
+        // Shift key: vertical line (lock X to start)
+        constrainedEndX = startX;
+      } else if (event && event.ctrlKey) {
+        // Ctrl key: horizontal line (lock Y to start)
+        constrainedEndY = startY;
+      }
+      
+      arrow.points([startX, startY, constrainedEndX, constrainedEndY]);
     } else if (this.currentTool === ToolType.LINE) {
       const line = this.currentShape as Konva.Line;
-      line.points([startX, startY, endX, endY]);
+      // Apply constraints based on modifier keys
+      let constrainedEndX = endX;
+      let constrainedEndY = endY;
+      
+      if (event && event.shiftKey) {
+        // Shift key: vertical line (lock X to start)
+        constrainedEndX = startX;
+      } else if (event && event.ctrlKey) {
+        // Ctrl key: horizontal line (lock Y to start)
+        constrainedEndY = startY;
+      }
+      
+      line.points([startX, startY, constrainedEndX, constrainedEndY]);
     }
 
     this.drawingLayer!.batchDraw();
