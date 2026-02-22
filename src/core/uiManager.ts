@@ -127,24 +127,12 @@ export class UIManager {
       </div>
 
       <div class="toolbar-section">
-        <span class="toolbar-label">Color</span>
-        <input type="color" id="color-picker" value="#000000" title="Choose Color" class="color-picker"/>
-        <div class="color-palette">
-          <button class="color-btn active" data-color="#000000" style="background-color: #000000"></button>
-          <button class="color-btn" data-color="#FF0000" style="background-color: #FF0000"></button>
-          <button class="color-btn" data-color="#00FF00" style="background-color: #00FF00"></button>
-          <button class="color-btn" data-color="#0000FF" style="background-color: #0000FF"></button>
-          <button class="color-btn" data-color="#FFFF00" style="background-color: #FFFF00"></button>
-          <button class="color-btn" data-color="#FF00FF" style="background-color: #FF00FF"></button>
-          <button class="color-btn" data-color="#00FFFF" style="background-color: #00FFFF"></button>
-          <button class="color-btn" data-color="#FFA500" style="background-color: #FFA500"></button>
-          <button class="color-btn" data-color="#800080" style="background-color: #800080"></button>
-          <button class="color-btn" data-color="#FFFFFF" style="background-color: #FFFFFF"></button>
-        </div>
+        <span class="toolbar-label">Tool Color</span>
+        <input type="color" id="color-picker" value="#000000" title="Choose Tool Color" class="color-picker"/>
       </div>
 
       <div class="toolbar-section">
-        <span class="toolbar-label">Background</span>
+        <span class="toolbar-label">Background Color</span>
         <input type="color" id="background-color-picker" value="#ffffff" title="Choose Background Color" class="color-picker"/>
       </div>
 
@@ -269,30 +257,10 @@ export class UIManager {
       });
     });
 
-    // Color palette buttons
-    const colorButtons = this.toolbar.querySelectorAll('.color-btn');
-    colorButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const color = btn.getAttribute('data-color');
-        if (color) {
-          this.setColor(color);
-          // Update all color buttons
-          colorButtons.forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          // Update color picker
-          if (this.colorPicker) {
-            this.colorPicker.value = color;
-          }
-        }
-      });
-    });
-
     // Color picker
     if (this.colorPicker) {
       this.colorPicker.addEventListener('input', () => {
         this.setColor(this.colorPicker!.value);
-        // Remove active state from palette buttons
-        colorButtons.forEach(b => b.classList.remove('active'));
       });
     }
 

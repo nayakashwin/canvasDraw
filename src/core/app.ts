@@ -261,6 +261,12 @@ export class App {
     await this.storageManager.init();
     
     /**
+     * Step 4.5: Purge any saved state on load
+     */
+    await this.storageManager.deleteState();
+    console.log('Purged saved state from IndexedDB');
+    
+    /**
      * Step 5: Create UI Manager
      */
     this.uiManager = new UIManager(this.containerId, this);
@@ -284,6 +290,11 @@ export class App {
       console.log('Restored saved state');
     } else {
       console.log('No saved state found, starting fresh');
+      
+      // Clear the canvas and force default background color on first load
+      this.objectManager!.clearAll();
+      this.canvasManager!.setBackgroundColor('#ffffff');
+      console.log('Canvas cleared and background color set to white');
     }
     
     /**

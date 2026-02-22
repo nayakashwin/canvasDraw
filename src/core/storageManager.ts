@@ -431,4 +431,60 @@ export class StorageManager {
   public updateAutoSaveState(state: CanvasState): void {
     this.currentState = state;
   }
+
+  /**
+   * Deletes a saved state from IndexedDB
+   * 
+   * @param id - ID of the state to delete (default: 'current')
+   * 
+   * USAGE EXAMPLE:
+   * await storage.deleteState('current');
+   * 
+   * BEGINNER TIP:
+   * This removes a saved state from storage.
+   * Useful for clearing old data or resetting the application.
+   */
+  public async deleteState(id: string = 'current'): Promise<void> {
+    /**
+     * Wait for database to be initialized
+     */
+    if (!this.db) {
+      await this.initDatabase();
+    }
+    
+    return new Promise((resolve, reject) => {
+      /**
+       * Step 1: Open a transaction
+       * 
+       * 'readwrite' mode allows both reading and writing.
+       */
+      const transaction = this.db!.transaction([StorageManager.STORE_NAME], 'readwrite');
+      
+      /**
+       * Step 2: Get the object store
+       */
+      const store = transaction.objectStore(StorageManager.STORE_NAME);
+      
+      /**
+       * Step 3: Delete the state from the store
+       * 
+       * The 'delete' method removes a record by key.
+       * 
+       * BEGINNER TIP:
+       * 'delete' is like DELETE in SQL.
+       * It removes a single record by primary key.
+       */
+      const request = store.delete(id);
+      
+      /**
+       * Handle successful deletion
+       */
+      request.onsuccess = () => resolve();
+      
+      /**
+       * Handle deletion errors
+       */
+      request.onerror = () => reject(request.error);
+    });
+  }
 }
