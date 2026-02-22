@@ -224,9 +224,24 @@ import { Point, CanvasMouseEvent } from '../types';
   }
 
   public selectNode(node: Konva.Node | Konva.Node[]): void {
-    const nodes = Array.isArray(node) ? node : [node];
-    this.transformer.nodes(nodes as Konva.Node[]);
-    this.layer.batchDraw();
+    try {
+      const nodes = Array.isArray(node) ? node : [node];
+      
+      // Filter out null/undefined nodes
+      const validNodes = nodes.filter(n => n !== null && n !== undefined);
+      
+      if (validNodes.length === 0) {
+        console.warn('No valid nodes to select');
+        this.deselectAll();
+        return;
+      }
+      
+      this.transformer.nodes(validNodes as Konva.Node[]);
+      this.layer.batchDraw();
+    } catch (error) {
+      console.error('Error in selectNode:', error);
+      this.deselectAll();
+    }
   }
 
   public deselectAll(): void {
@@ -259,10 +274,53 @@ import { Point, CanvasMouseEvent } from '../types';
     if (container) {
       container.style.backgroundColor = color;
     }
+    // Update transformer color to be complementary to background
+    this.updateTransformerColor();
   }
 
   public getBackgroundColor(): string {
     return this.backgroundColor;
+  }
+
+  /**
+   * Gets a complementary color for the selection box
+   * 
+   * @returns A color that contrasts well with the background
+   */
+  private getComplementaryColor(): string {
+    // Predefined mappings for common colors
+    const colorMap: { [key: string]: string } = {
+      '#ffffff': '#0099ff',    // white → blue
+      '#000000': '#ff6600',    // black → orange
+      'white': '#0099ff',
+      'black': '#ff6600',
+      '#ff0000': '#00ffff',     // red → cyan
+      '#00ff00': '#ff00ff',     // green → magenta
+      '#0000ff': '#ffff00',     // blue → yellow
+      '#ffff00': '#0066ff',     // yellow → dark blue
+      '#00ffff': '#ff0000',     // cyan → red
+      '#ff00ff': '#00ff00',     // magenta → green
+    };
+    
+    const lowerColor = this.backgroundColor.toLowerCase();
+    
+    // Check predefined mappings first
+    if (colorMap[lowerColor]) {
+      return colorMap[lowerColor];
+    }
+    
+    // Default to blue for any other color
+    return '#0099ff';
+  }
+
+  /**
+   * Updates the transformer color based on background color
+   */
+  private updateTransformerColor(): void {
+    const complementaryColor = this.getComplementaryColor();
+    this.transformer.anchorStroke(complementaryColor);
+    this.transformer.borderStroke(complementaryColor);
+    this.layer.batchDraw();
   }
 
   public on(eventName: string, callback: Function): void {

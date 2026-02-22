@@ -379,8 +379,8 @@ export class App {
         this.isPanning = true;
         this.lastPanPosition = screenPosition;
       } else if (this.currentTool === ToolType.SELECTION) {
-        // Selection tool: check if clicking on an object
-        this.objectManager!.deselectAll();
+        // Selection tool: handle object selection
+        this.handleSelection(canvasPosition, event);
       } else if (this.currentTool === ToolType.PEN) {
         // Pen tool: start freehand drawing
         this.startDrawing(canvasPosition);
@@ -395,6 +395,44 @@ export class App {
         // Shape tools: start drawing shape
         this.startShapeDrawing(canvasPosition);
       }
+    }
+  }
+
+  /**
+   * Handles selection tool clicks
+   * 
+   * @param canvasPosition - The position in canvas coordinates
+   * @param event - The mouse event
+   */
+  private handleSelection(canvasPosition: Point, event: any): void {
+    const stage = this.canvasManager!.getStage();
+    if (!stage) return;
+
+    // Find the top-most shape at the clicked position
+    const clickedNode = stage.getIntersection(canvasPosition);
+    
+    if (clickedNode && clickedNode.name()) {
+      const objectId = clickedNode.name();
+      const isShiftPressed = event.shiftKey;
+      
+      if (isShiftPressed) {
+        // Shift+Click: Toggle selection for multiple selection
+        const selectedIds = this.objectManager!.getSelectedIds();
+        if (selectedIds.includes(objectId)) {
+          // Deselect if already selected
+          this.objectManager!.deselectObject(objectId);
+        } else {
+          // Add to selection
+          this.objectManager!.selectObject(objectId);
+        }
+      } else {
+        // Regular click: Clear previous selection and select only this object
+        this.objectManager!.deselectAll();
+        this.objectManager!.selectObject(objectId);
+      }
+    } else {
+      // Clicked on empty space: Clear all selection
+      this.objectManager!.deselectAll();
     }
   }
 
@@ -1096,6 +1134,11 @@ export class App {
    * app.setTool(ToolType.PEN);
    */
   public setTool(tool: ToolType): void {
+    // Clear selection when switching to a different tool (not Selection tool)
+    if (tool !== ToolType.SELECTION && this.currentTool !== ToolType.SELECTION) {
+      this.objectManager?.deselectAll();
+    }
+    
     this.currentTool = tool;
     console.log(`Tool changed to: ${tool}`);
   }
