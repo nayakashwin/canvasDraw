@@ -80,7 +80,12 @@ export class UIManager {
         <div class="toolbar-tools">
           <button class="tool-btn active" data-tool="hand" title="Hand Tool (H)">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0a2 2 0 0 0-2 2v0a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-5M12 18v-5m0 0h-2m2 0h2m-2 0h2"/>
+              <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0a2 2 0 0 0-2 2v0a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-5"/>
+              <path d="M12 18v-5m0 0h-2m2 0h2"/>
+              <path d="M18 20.5c0-1.38-1.12-2.5-2.5-2.5"/>
+              <path d="M14 18v-6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v6"/>
+              <path d="M10 14a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2v-6"/>
+              <path d="M6 12a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2v-10"/>
             </svg>
           </button>
           <button class="tool-btn" data-tool="selection" title="Selection Tool (S)">
