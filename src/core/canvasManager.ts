@@ -106,6 +106,11 @@ import { Point, CanvasMouseEvent } from '../types';
       this.emit('mouseup', event);
     });
     
+    this.stage.on('dblclick', (e: Konva.KonvaEventObject<MouseEvent>) => {
+      const event = this.createCanvasMouseEvent(e.evt);
+      this.emit('dblclick', event);
+    });
+    
     this.stage.on('wheel', (e: Konva.KonvaEventObject<WheelEvent>) => {
       e.evt.preventDefault();
       const scaleFactor = e.evt.deltaY > 0 ? 0.9 : 1.1;

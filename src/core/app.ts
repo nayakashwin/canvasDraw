@@ -343,14 +343,14 @@ export class App {
     });
 
     /**
-     * zoom: Handle zoom changes
+     * dblclick: Handle double-click to add/edit text in objects
      */
-    this.canvasManager.on('zoom', (data: any) => {
-      this.currentState.zoom = data.zoom;
-      this.currentState.pan = data.pan;
-      this.updateState();
-      // Update UI zoom display
-      this.uiManager?.updateZoomDisplay(data.zoom);
+    this.canvasManager.on('dblclick', (event: any) => {
+      this.handleDoubleClick(event);
+    });
+
+    /**
+     *
     });
 
     /**

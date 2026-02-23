@@ -806,6 +806,15 @@ export class ObjectManager {
   }
 
   /**
+   * Gets the nodes map
+   * 
+   * @returns Map of Konva nodes by object ID
+   */
+  public getNodes(): Map<string, Konva.Node> {
+    return this.nodes;
+  }
+
+  /**
    * Gets the currently selected object IDs
    * 
    * @returns Array of selected object IDs
