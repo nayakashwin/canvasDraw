@@ -271,7 +271,7 @@ export class App {
      * Step 4.5: Purge any saved state on load
      */
     await this.storageManager.deleteState();
-    console.log('Purged saved state from IndexedDB');
+
     
     /**
      * Step 5: Create UI Manager
@@ -294,14 +294,14 @@ export class App {
     const savedState = await this.storageManager!.loadState();
     if (savedState) {
       this.restoreState(savedState);
-      console.log('Restored saved state');
+
     } else {
-      console.log('No saved state found, starting fresh');
+
       
       // Clear the canvas and force default background color on first load
       this.objectManager!.clearAll();
       this.canvasManager!.setBackgroundColor('#ffffff');
-      console.log('Canvas cleared and background color set to white');
+  
     }
     
     /**
@@ -317,7 +317,7 @@ export class App {
       loading.remove();
     }
     
-    console.log('Canvas Draw initialized successfully!');
+
   }
 
   /**
@@ -617,7 +617,7 @@ export class App {
       // Update UI object count
       this.uiManager?.updateObjectCount();
       
-      console.log(`Finished freehand drawing with ID: ${id}`);
+
     }
     
     this.currentLine = null;
@@ -889,7 +889,7 @@ export class App {
     // Update UI object count
     this.uiManager?.updateObjectCount();
     
-    console.log(`Finished drawing ${tool} with ID: ${id}`);
+
     
     this.currentShape = null;
     this.shapeStartPoint = null;
@@ -1044,7 +1044,7 @@ export class App {
     
     // Update UI object count
     this.uiManager?.updateObjectCount();
-    console.log(`Created ${type} object with ID: ${id}`);
+
   }
 
   /**
@@ -1058,7 +1058,7 @@ export class App {
 
     const selectedIds = this.objectManager.getSelectedIds();
     if (selectedIds.length === 0) {
-      console.log('No objects selected');
+
       return;
     }
 
@@ -1070,7 +1070,7 @@ export class App {
     
     // Update UI object count
     this.uiManager?.updateObjectCount();
-    console.log(`Deleted ${selectedIds.length} object(s)`);
+
   }
 
   /**
@@ -1089,9 +1089,9 @@ export class App {
       // Remove the most recent entry from change history
       this.removeMostRecentChange();
       
-      console.log('Undone');
+
     } else {
-      console.log('Nothing to undo');
+
     }
   }
 
@@ -1107,9 +1107,9 @@ export class App {
     const nextState = this.historyManager.redo();
     if (nextState) {
       this.restoreState(nextState);
-      console.log('Redone');
+
     } else {
-      console.log('Nothing to redo');
+
     }
   }
 
@@ -1134,7 +1134,7 @@ export class App {
     
     // Update UI object count
     this.uiManager?.updateObjectCount();
-    console.log('Canvas cleared');
+
   }
 
   /**
@@ -1146,7 +1146,7 @@ export class App {
   public zoomIn(): void {
     if (this.canvasManager) {
       this.canvasManager.zoom(1.1);
-      console.log('Zoomed in');
+
     }
   }
 
@@ -1159,7 +1159,7 @@ export class App {
   public zoomOut(): void {
     if (this.canvasManager) {
       this.canvasManager.zoom(0.9);
-      console.log('Zoomed out');
+
     }
   }
 
@@ -1178,7 +1178,6 @@ export class App {
     }
     
     this.currentTool = tool;
-    console.log(`Tool changed to: ${tool}`);
   }
 
   /**
@@ -1191,7 +1190,6 @@ export class App {
    */
   public setColor(color: string): void {
     this.currentColor = color;
-    console.log(`Color changed to: ${color}`);
   }
 
   /**
@@ -1204,7 +1202,6 @@ export class App {
    */
   public setStrokeWidth(width: number): void {
     this.currentStrokeWidth = width;
-    console.log(`Stroke width changed to: ${width}px`);
   }
 
   /**
@@ -1219,7 +1216,6 @@ export class App {
    */
   public setLineStyle(dash: number[] | null): void {
     this.currentLineStyle = dash;
-    console.log(`Line style changed to: ${dash ? dash.join(',') : 'solid'}`);
   }
 
   /**
@@ -1232,7 +1228,6 @@ export class App {
    */
   public setFontFamily(fontFamily: string): void {
     this.currentFontFamily = fontFamily;
-    console.log(`Font family changed to: ${fontFamily}`);
   }
 
   /**
@@ -1254,7 +1249,6 @@ export class App {
    */
   public setFontSize(fontSize: number): void {
     this.currentFontSize = fontSize;
-    console.log(`Font size changed to: ${fontSize}px`);
   }
 
   /**

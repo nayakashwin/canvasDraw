@@ -169,46 +169,23 @@ import { Point, CanvasMouseEvent } from '../types';
       return;
     }
     
-    // Store currently selected transformer nodes before zooming
-    // This allows us to restore the selection after zoom completes
-    let selectedNodes: Konva.Node[] = [];
-    try {
-      selectedNodes = this.transformer.nodes();
-      // Clear the transformer nodes before zooming to prevent
-      // the "anchor is undefined" error that occurs when the transformer
-      // tries to update its anchors during the zoom operation
-      this.transformer.nodes([]);
-    } catch (error) {
-      console.warn('Error clearing transformer nodes before zoom:', error);
-      selectedNodes = [];
-    }
+    const selectedNodes = this.transformer.nodes();
+    this.transformer.nodes([]);
     
     if (centerX !== undefined && centerY !== undefined) {
-      // Get mouse position relative to stage before zooming
       const mouse = this.stage.getPointerPosition();
       if (!mouse) {
-        // If we cleared the transformer but can't zoom, restore selection
         if (selectedNodes.length > 0) {
-          try {
-            this.transformer.nodes(selectedNodes);
-          } catch (error) {
-            console.warn('Error restoring transformer nodes:', error);
-          }
+          this.transformer.nodes(selectedNodes);
         }
         return;
       }
       
-      // Calculate position relative to stage origin (in stage coordinates)
       const stageX = mouse.x - this.stage.x();
       const stageY = mouse.y - this.stage.y();
       
-      // Apply new scale
       this.stage.scale({ x: newScale, y: newScale });
       
-      // Calculate new stage position to keep mouse over the same point
-      // After scaling, the stage-relative position becomes: (stageX, stageY) * newScale / oldScale
-      // We want: newStageX + (stageX * newScale / oldScale) = mouse.x
-      // So: newStageX = mouse.x - (stageX * newScale / oldScale)
       const newX = mouse.x - (stageX * newScale / oldScale);
       const newY = mouse.y - (stageY * newScale / oldScale);
       
@@ -223,28 +200,9 @@ import { Point, CanvasMouseEvent } from '../types';
     this.layer.batchDraw();
     this.emit('zoom', { zoom: this.currentZoom, pan: this.currentPan });
     
-    // Restore the transformer selection after zoom completes
-    // Use requestAnimationFrame to ensure the zoom is fully applied
-    // before re-attaching the transformer
     if (selectedNodes.length > 0) {
       requestAnimationFrame(() => {
-        try {
-          // Validate nodes are still valid before re-attaching
-          const validNodes = selectedNodes.filter(node => {
-            try {
-              return node && node.getLayer() && node.draggable();
-            } catch {
-              return false;
-            }
-          });
-          
-          if (validNodes.length > 0) {
-            this.transformer.nodes(validNodes);
-          }
-        } catch (error) {
-          console.warn('Error restoring transformer selection after zoom:', error);
-          // If restoration fails, leave the transformer cleared to prevent further errors
-        }
+        this.selectNode(selectedNodes);
       });
     }
   }

@@ -58,7 +58,7 @@ export class UIManager {
   public initialize(): void {
     this.createToolbar();
     this.setupEventListeners();
-    console.log('UI Manager initialized');
+
   }
 
   /**
@@ -461,8 +461,6 @@ export class UIManager {
       };
       this.currentToolDisplay.textContent = `Tool: ${toolNames[tool]}`;
     }
-
-    console.log(`Selected tool: ${tool}`);
   }
 
   /**
@@ -470,7 +468,6 @@ export class UIManager {
    */
   private setColor(color: string): void {
     this.app.setColor(color);
-    console.log(`Color changed to: ${color}`);
   }
 
   /**
@@ -478,7 +475,6 @@ export class UIManager {
    */
   private setBackgroundColor(color: string): void {
     this.app['canvasManager'].setBackgroundColor(color);
-    console.log(`Background color changed to: ${color}`);
   }
 
   /**

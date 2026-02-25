@@ -118,7 +118,6 @@ async function main(): Promise<void> {
      * Async operations take time to complete.
      * We use 'await' to wait for them to finish.
      */
-    console.log('Initializing Canvas Draw...');
     await app.initialize();
 
     /**
@@ -137,28 +136,7 @@ async function main(): Promise<void> {
      */
     window.app = app;
 
-    console.log('================================================================');
-    console.log('  Canvas Draw - Ready!');
-    console.log('================================================================');
-    console.log('');
-    console.log('Available commands (in browser console):');
-    console.log('  window.app.zoomIn()          - Zoom in by 10%');
-    console.log('  window.app.zoomOut()         - Zoom out by 10%');
-    console.log('  window.app.undo()            - Undo last action');
-    console.log('  window.app.redo()            - Redo last undone action');
-    console.log('  window.app.clearCanvas()     - Clear all objects');
-    console.log('  window.app.getZoom()         - Get current zoom level');
-    console.log('  window.app.getObjectCount()   - Get number of objects');
-    console.log('');
-    console.log('Keyboard shortcuts:');
-    console.log('  Ctrl+Z                    - Undo');
-    console.log('  Ctrl+Y or Ctrl+Shift+Z - Redo');
-    console.log('  Delete or Backspace      - Delete selected objects');
-    console.log('  Escape                    - Deselect all objects');
-    console.log('================================================================');
-    console.log('');
-    console.log('Press F12 to open developer tools and access the console.');
-    console.log('');
+    console.log('Canvas Draw Ready!');
 
   } catch (error) {
     /**

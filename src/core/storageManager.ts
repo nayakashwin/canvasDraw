@@ -390,7 +390,6 @@ export class StorageManager {
       if (this.currentState) {
         try {
           await this.saveState(this.currentState);
-          console.log('Auto-saved at', new Date().toLocaleTimeString());
         } catch (error) {
           console.error('Auto-save failed:', error);
         }
