@@ -343,13 +343,6 @@ export class App {
     });
 
     /**
-     * dblclick: Handle double-click to add/edit text in objects
-     */
-    this.canvasManager.on('dblclick', (event: any) => {
-      this.handleDoubleClick(event);
-    });
-
-    /**
      *
     });
 

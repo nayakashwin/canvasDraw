@@ -69,6 +69,13 @@ import { Point, CanvasMouseEvent } from '../types';
     this.layer = new Konva.Layer();
     this.stage.add(this.layer);
     
+    this.createTransformer();
+    
+    window.addEventListener('resize', () => this.resize());
+    this.setupMouseEvents();
+  }
+
+  private createTransformer(): void {
     this.transformer = new Konva.Transformer({
       nodes: [],
       anchorStroke: '#0099ff',
@@ -78,6 +85,7 @@ import { Point, CanvasMouseEvent } from '../types';
       borderStrokeWidth: 2,
       borderDash: [6, 6],
       rotateEnabled: true,
+      centeredScaling: true,
       enabledAnchors: [
         'top-left', 'top-center', 'top-right',
         'middle-left', 'middle-right',
@@ -85,9 +93,22 @@ import { Point, CanvasMouseEvent } from '../types';
       ]
     });
     this.layer.add(this.transformer);
-    
-    window.addEventListener('resize', () => this.resize());
-    this.setupMouseEvents();
+    this.setupTransformerEvents();
+  }
+
+  private setupTransformerEvents(): void {
+    this.transformer.on('transform', () => {
+      const nodes = this.transformer.nodes();
+      nodes.forEach(node => {
+        if (node && node.getParent()) {
+          node.batchDraw();
+        }
+      });
+    });
+
+    this.transformer.on('transformend', () => {
+      this.layer.batchDraw();
+    });
   }
 
   private setupMouseEvents(): void {
@@ -104,11 +125,6 @@ import { Point, CanvasMouseEvent } from '../types';
     this.stage.on('mouseup', (e: Konva.KonvaEventObject<MouseEvent>) => {
       const event = this.createCanvasMouseEvent(e.evt);
       this.emit('mouseup', event);
-    });
-    
-    this.stage.on('dblclick', (e: Konva.KonvaEventObject<MouseEvent>) => {
-      const event = this.createCanvasMouseEvent(e.evt);
-      this.emit('dblclick', event);
     });
     
     this.stage.on('wheel', (e: Konva.KonvaEventObject<WheelEvent>) => {
@@ -282,8 +298,7 @@ import { Point, CanvasMouseEvent } from '../types';
     try {
       const nodes = Array.isArray(node) ? node : [node];
       
-      // Filter out null/undefined nodes
-      const validNodes = nodes.filter(n => n !== null && n !== undefined);
+      const validNodes = nodes.filter(n => n !== null && n !== undefined && n.getParent() !== null);
       
       if (validNodes.length === 0) {
         console.warn('No valid nodes to select');
@@ -305,9 +320,12 @@ import { Point, CanvasMouseEvent } from '../types';
   }
 
   public clear(): void {
+    if (this.transformer) {
+      this.transformer.nodes([]);
+      this.transformer.destroy();
+    }
     this.layer.destroyChildren();
-    this.layer.add(this.transformer);
-    this.transformer.nodes([]);
+    this.createTransformer();
     this.layer.batchDraw();
   }
 
