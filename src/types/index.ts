@@ -185,6 +185,9 @@ export interface ObjectProperties {
   
   /** Whether the object can be dragged */
   draggable?: boolean;
+  
+  /** Dash pattern for line styles (e.g., [5, 5] for dashed, [2, 2] for dotted) */
+  dash?: number[];
 }
 
 /**

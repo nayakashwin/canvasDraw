@@ -143,6 +143,13 @@ export class App {
   private currentStrokeWidth: number = 2;
 
   /**
+   * Currently selected line style (dash pattern)
+   * 
+   * null = solid line, array = dash pattern
+   */
+  private currentLineStyle: number[] | null = null;
+
+  /**
    * Currently selected font family
    * 
    * Default is Arial.
@@ -521,6 +528,7 @@ export class App {
       points: [position.x, position.y],
       stroke: this.currentColor,
       strokeWidth: this.currentStrokeWidth,
+      dash: this.currentLineStyle,
       lineCap: 'round',
       lineJoin: 'round',
       tension: 0.5,
@@ -583,6 +591,7 @@ export class App {
       const properties = {
         stroke: this.currentColor,
         strokeWidth: this.currentStrokeWidth,
+        dash: this.currentLineStyle,
         fill: 'transparent',
         points: this.currentPoints,
         tension: 0.5,
@@ -645,6 +654,7 @@ export class App {
         height: 0,
         stroke: this.currentColor,
         strokeWidth: this.currentStrokeWidth,
+        dash: this.currentLineStyle,
         fill: 'transparent',
         draggable: false
       });
@@ -656,6 +666,7 @@ export class App {
         radiusY: 0,
         stroke: this.currentColor,
         strokeWidth: this.currentStrokeWidth,
+        dash: this.currentLineStyle,
         fill: 'transparent',
         draggable: false
       });
@@ -668,6 +679,7 @@ export class App {
         rotation: 45,
         stroke: this.currentColor,
         strokeWidth: this.currentStrokeWidth,
+        dash: this.currentLineStyle,
         fill: 'transparent',
         draggable: false
       });
@@ -678,6 +690,7 @@ export class App {
         pointerWidth: 10,
         stroke: this.currentColor,
         strokeWidth: this.currentStrokeWidth,
+        dash: this.currentLineStyle,
         fill: this.currentColor,
         draggable: false
       });
@@ -686,6 +699,7 @@ export class App {
         points: [position.x, position.y, position.x, position.y],
         stroke: this.currentColor,
         strokeWidth: this.currentStrokeWidth,
+        dash: this.currentLineStyle,
         draggable: false
       });
     } else {
@@ -799,6 +813,7 @@ export class App {
       properties = {
         stroke: this.currentColor,
         strokeWidth: this.currentStrokeWidth,
+        dash: this.currentLineStyle,
         fill: 'transparent'
       };
     } else if (tool === ToolType.CIRCLE) {
@@ -809,6 +824,7 @@ export class App {
       properties = {
         stroke: this.currentColor,
         strokeWidth: this.currentStrokeWidth,
+        dash: this.currentLineStyle,
         fill: 'transparent'
       };
     } else if (tool === ToolType.DIAMOND) {
@@ -819,6 +835,7 @@ export class App {
       properties = {
         stroke: this.currentColor,
         strokeWidth: this.currentStrokeWidth,
+        dash: this.currentLineStyle,
         fill: 'transparent'
       };
     } else if (tool === ToolType.ARROW) {
@@ -830,6 +847,7 @@ export class App {
       properties = {
         stroke: this.currentColor,
         strokeWidth: this.currentStrokeWidth,
+        dash: this.currentLineStyle,
         fill: this.currentColor
       };
     } else if (tool === ToolType.LINE) {
@@ -841,6 +859,7 @@ export class App {
       properties = {
         stroke: this.currentColor,
         strokeWidth: this.currentStrokeWidth,
+        dash: this.currentLineStyle,
         fill: 'transparent'
       };
     } else {
@@ -993,6 +1012,7 @@ export class App {
       properties = {
         stroke: this.currentColor,
         strokeWidth: this.currentStrokeWidth,
+        dash: this.currentLineStyle,
         fill: 'transparent',
         text: text,
         fontSize: this.currentFontSize,
@@ -1003,6 +1023,7 @@ export class App {
       properties = {
         stroke: this.currentColor,
         strokeWidth: this.currentStrokeWidth,
+        dash: this.currentLineStyle,
         fill: 'white'
       };
     }
@@ -1184,6 +1205,21 @@ export class App {
   public setStrokeWidth(width: number): void {
     this.currentStrokeWidth = width;
     console.log(`Stroke width changed to: ${width}px`);
+  }
+
+  /**
+   * Sets the current line style (dash pattern)
+   * 
+   * @param dash - The dash pattern array (e.g., [5, 5] for dashed, [2, 2] for dotted) or null for solid
+   * 
+   * USAGE EXAMPLE:
+   * app.setLineStyle([5, 5]); // Dashed
+   * app.setLineStyle([2, 2]); // Dotted
+   * app.setLineStyle(null);   // Solid
+   */
+  public setLineStyle(dash: number[] | null): void {
+    this.currentLineStyle = dash;
+    console.log(`Line style changed to: ${dash ? dash.join(',') : 'solid'}`);
   }
 
   /**

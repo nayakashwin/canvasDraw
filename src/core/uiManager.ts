@@ -121,10 +121,35 @@ export class UIManager {
       <div class="toolbar-section">
         <span class="toolbar-label">Stroke</span>
         <select id="stroke-width" class="stroke-width-select" title="Stroke Width">
-          <option value="1">Thin (1px)</option>
-          <option value="2" selected>Medium (2px)</option>
-          <option value="4">Thick (4px)</option>
-          <option value="8">Extra Thick (8px)</option>
+          <option value="1">1px</option>
+          <option value="2" selected>2px</option>
+          <option value="4">4px</option>
+          <option value="8">8px</option>
+          <option value="12">12px</option>
+          <option value="14">14px</option>
+          <option value="16">16px</option>
+          <option value="18">18px</option>
+          <option value="20">20px</option>
+          <option value="24">24px</option>
+          <option value="28">28px</option>
+          <option value="32">32px</option>
+          <option value="36">36px</option>
+          <option value="40">40px</option>
+          <option value="48">48px</option>
+        </select>
+      </div>
+
+      <div class="toolbar-section">
+        <span class="toolbar-label">Line Style</span>
+        <select id="line-style" class="line-style-select" title="Line Style">
+          <option value="" selected>Solid</option>
+          <option value="5,5">Dashed</option>
+          <option value="2,2">Dotted</option>
+          <option value="10,5">Long Dash</option>
+          <option value="10,2,2,2">Dash Dotted</option>
+          <option value="1,5">Sparse Dots</option>
+          <option value="5,5,2,5">Dash Double Dot</option>
+          <option value="20,10,5,10">Long Dash Short Gap</option>
         </select>
       </div>
 
@@ -258,6 +283,16 @@ export class UIManager {
       this.strokeWidthSelect.addEventListener('change', () => {
         const width = parseInt(this.strokeWidthSelect!.value);
         this.app['setStrokeWidth'](width);
+      });
+    }
+
+    // Line style
+    const lineStyleSelect = this.toolbar.querySelector('#line-style') as HTMLSelectElement;
+    if (lineStyleSelect) {
+      lineStyleSelect.addEventListener('change', () => {
+        const value = lineStyleSelect.value;
+        const dashArray = value ? value.split(',').map(Number) : null;
+        this.app['setLineStyle'](dashArray);
       });
     }
 
