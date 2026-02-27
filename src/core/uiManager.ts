@@ -153,6 +153,11 @@ export class UIManager {
         </select>
       </div>
 
+      <div class="toolbar-section">
+        <span class="toolbar-label">Looney</span>
+        <input type="checkbox" id="looney-mode" title="Enable hand-drawn style" />
+      </div>
+
       <div class="toolbar-section" id="text-section">
         <span class="toolbar-label">Text</span>
         <select id="font-family" class="font-family-select" title="Font Family">
@@ -293,6 +298,14 @@ export class UIManager {
         const value = lineStyleSelect.value;
         const dashArray = value ? value.split(',').map(Number) : null;
         this.app['setLineStyle'](dashArray);
+      });
+    }
+
+    // Looney mode
+    const looneyCheckbox = this.toolbar.querySelector('#looney-mode') as HTMLInputElement;
+    if (looneyCheckbox) {
+      looneyCheckbox.addEventListener('change', () => {
+        this.app['setLooneyMode'](looneyCheckbox.checked);
       });
     }
 

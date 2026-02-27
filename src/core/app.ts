@@ -150,6 +150,11 @@ export class App {
   private currentLineStyle: number[] | null = null;
 
   /**
+   * Whether Looney mode is enabled (hand-drawn wavy effect)
+   */
+  private looneyMode: boolean = false;
+
+  /**
    * Currently selected font family
    * 
    * Default is Arial.
@@ -1249,6 +1254,16 @@ export class App {
    */
   public setFontSize(fontSize: number): void {
     this.currentFontSize = fontSize;
+  }
+
+  /**
+   * Sets Looney mode (hand-drawn wavy effect)
+   * 
+   * @param enabled - Whether Looney mode should be enabled
+   */
+  public setLooneyMode(enabled: boolean): void {
+    this.looneyMode = enabled;
+    this.objectManager?.setLooneyMode(enabled);
   }
 
   /**
