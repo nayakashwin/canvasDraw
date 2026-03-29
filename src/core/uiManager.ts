@@ -30,7 +30,7 @@
  */
 
 import { App } from './app';
-import { ToolType } from '../types';
+import { ToolType, Point } from '../types';
 
 /**
  * UIManager: Manages all UI elements
@@ -44,6 +44,7 @@ export class UIManager {
   private backgroundColorPicker: HTMLInputElement | null = null;
   private currentToolDisplay: HTMLElement | null = null;
   private zoomDisplay: HTMLElement | null = null;
+  private positioningCallback: ((position: Point) => void) | null = null;
 
   constructor(containerId: string, app: App) {
     this.containerId = containerId;
@@ -230,6 +231,24 @@ export class UIManager {
         </button>
       </div>
 
+      <div class="toolbar-section">
+        <span class="toolbar-label">Export/Import</span>
+        <button class="action-btn" id="export-json" title="Export as JSON">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7,10 12,15 17,10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </button>
+        <button class="action-btn" id="import-json" title="Import from JSON">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17,8 12,3 7,8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </button>
+      </div>
+
       <div class="toolbar-section toolbar-info">
         <span class="info-text" id="current-tool">Tool: Selection</span>
         <span class="info-text" id="object-count">Objects: 0</span>
@@ -354,6 +373,13 @@ export class UIManager {
       }
     });
 
+    // Export/Import buttons
+    const exportJson = this.toolbar.querySelector('#export-json');
+    const importJson = this.toolbar.querySelector('#import-json');
+
+    if (exportJson) exportJson.addEventListener('click', () => this.app['exportAsJson']());
+    if (importJson) importJson.addEventListener('click', () => this.app['importFromJson']());
+
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => this.handleKeyboard(e));
   }
@@ -441,6 +467,18 @@ export class UIManager {
         this.app['canvasManager'].setZoom(1.0);
         this.updateZoomDisplay(1.0);
       }
+
+      // Ctrl+E: Export
+      if (e.ctrlKey && e.key === 'e') {
+        e.preventDefault();
+        this.app['exportAsJson']();
+      }
+
+      // Ctrl+I: Import
+      if (e.ctrlKey && e.key === 'i') {
+        e.preventDefault();
+        this.app['importFromJson']();
+      }
     }
   }
 
@@ -509,5 +547,71 @@ export class UIManager {
       const count = this.app.getObjectCount();
       infoText.textContent = `Objects: ${count}`;
     }
+  }
+
+  /**
+   * Enables positioning mode for placing imported objects
+   * 
+   * @param callback - Function to call with the selected position
+   */
+  public enablePositioningMode(callback: (position: Point) => void): void {
+    this.positioningCallback = callback;
+
+    const canvasContainer = document.getElementById(this.containerId);
+    if (!canvasContainer) return;
+
+    canvasContainer.style.cursor = 'crosshair';
+
+    const mouseHandler = (e: MouseEvent) => {
+      const canvasManager = this.app['canvasManager'];
+      if (!canvasManager) return;
+
+      const stage = canvasManager.getStage();
+      if (!stage) return;
+
+      const pos = stage.getPointerPosition();
+      if (!pos) return;
+
+      const canvasPosition = {
+        x: pos.x,
+        y: pos.y
+      };
+
+      canvasContainer.style.cursor = '';
+      canvasContainer.removeEventListener('click', mouseHandler);
+
+      if (this.positioningCallback) {
+        this.positioningCallback(canvasPosition);
+        this.positioningCallback = null;
+      }
+    };
+
+    setTimeout(() => {
+      canvasContainer.addEventListener('click', mouseHandler);
+    }, 100);
+
+    document.addEventListener('keydown', this.escapeHandler);
+  }
+
+  private escapeHandler = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      this.disablePositioningMode();
+    }
+  };
+
+  /**
+   * Disables positioning mode
+   */
+  public disablePositioningMode(): void {
+    if (this.positioningCallback) {
+      this.positioningCallback = null;
+    }
+
+    const canvasContainer = document.getElementById(this.containerId);
+    if (canvasContainer) {
+      canvasContainer.style.cursor = '';
+    }
+
+    document.removeEventListener('keydown', this.escapeHandler);
   }
 }

@@ -1,45 +1,7 @@
-/**
- * ============================================================================
- * CANVAS MANAGER
- * ============================================================================
- * 
- * PURPOSE:
- * This class manages the HTML5 Canvas using Konva.js library. It handles:
- * - Creating and managing the drawing surface (Stage and Layer)
- * - Zoom in/out functionality
- * - Panning (moving) around the canvas
- * - Rendering objects on the canvas
- * - Converting between screen and canvas coordinates
- * 
- * WHY WE NEED IT:
- * Without this class, canvas operations would be scattered throughout the code.
- * By centralizing all canvas logic here, other parts of the app can use simple
- * methods like canvas.zoom() without worrying about complex implementation.
- * 
- * HOW TO USE:
- * 1. Import: import { CanvasManager } from './core/canvasManager';
- * 2. Create: const canvas = new CanvasManager('container-id');
- * 3. Use: canvas.zoom(1.5); canvas.pan(100, 200);
- * 
- * DEPENDENCIES:
- * - Konva.js: The 2D canvas library we're using
- * - TypeScript: For type safety
- * 
- * BEGINNER TIPS:
- * - The canvas is like an infinite piece of paper
- * - Zoom changes how big things appear
- * - Pan moves your view around the canvas
- * - Screen coordinates = pixels on your monitor
- * - Canvas coordinates = adjusted for zoom and pan
- */
-
 import Konva from 'konva';
 import { Point, CanvasMouseEvent } from '../types';
 
-/**
- * CanvasManager: Manages all canvas operations using Konva.js
- */
-  export class CanvasManager {
+export class CanvasManager {
   private stage: Konva.Stage;
   private layer: Konva.Layer;
   private transformer: Konva.Transformer;
@@ -51,146 +13,62 @@ import { Point, CanvasMouseEvent } from '../types';
 
   constructor(containerId: string) {
     this.containerId = containerId;
-    
     const container = document.getElementById(containerId);
-    if (!container) {
-      throw new Error(
-        `Container element with id '${containerId}' not found. ` +
-        'Make sure you have a div with this id in your HTML.'
-      );
-    }
+    if (!container) throw new Error(`Container element with id '${containerId}' not found`);
     
-    this.stage = new Konva.Stage({
-      container: containerId,
-      width: container.clientWidth,
-      height: container.clientHeight
-    });
-    
+    this.stage = new Konva.Stage({ container: containerId, width: container.clientWidth, height: container.clientHeight });
     this.layer = new Konva.Layer();
     this.stage.add(this.layer);
-    
     this.createTransformer();
-    
     window.addEventListener('resize', () => this.resize());
     this.setupMouseEvents();
   }
 
   private createTransformer(): void {
     this.transformer = new Konva.Transformer({
-      nodes: [],
-      anchorStroke: '#0099ff',
-      anchorFill: '#ffffff',
-      anchorSize: 10,
-      borderStroke: '#0099ff',
-      borderStrokeWidth: 2,
-      borderDash: [6, 6],
-      rotateEnabled: true,
-      centeredScaling: true,
-      enabledAnchors: [
-        'top-left', 'top-center', 'top-right',
-        'middle-left', 'middle-right',
-        'bottom-left', 'bottom-center', 'bottom-right'
-      ]
+      nodes: [], anchorStroke: '#0099ff', anchorFill: '#ffffff', anchorSize: 10,
+      borderStroke: '#0099ff', borderStrokeWidth: 2, borderDash: [6, 6],
+      rotateEnabled: true, centeredScaling: true,
+      enabledAnchors: ['top-left', 'top-center', 'top-right', 'middle-left', 'middle-right', 'bottom-left', 'bottom-center', 'bottom-right']
     });
     this.layer.add(this.transformer);
-    this.setupTransformerEvents();
-  }
-
-  private setupTransformerEvents(): void {
-    this.transformer.on('transform', () => {
-      const nodes = this.transformer.nodes();
-      nodes.forEach(node => {
-        if (node && node.getParent()) {
-          node.batchDraw();
-        }
-      });
-    });
-
-    this.transformer.on('transformend', () => {
-      this.layer.batchDraw();
-    });
+    this.transformer.on('transform', () => this.transformer.nodes().forEach(node => node?.getLayer()?.batchDraw()));
+    this.transformer.on('transformend', () => this.layer.batchDraw());
   }
 
   private setupMouseEvents(): void {
-    this.stage.on('mousedown', (e: Konva.KonvaEventObject<MouseEvent>) => {
-      const event = this.createCanvasMouseEvent(e.evt);
-      this.emit('mousedown', event);
-    });
-    
-    this.stage.on('mousemove', (e: Konva.KonvaEventObject<MouseEvent>) => {
-      const event = this.createCanvasMouseEvent(e.evt);
-      this.emit('mousemove', event);
-    });
-    
-    this.stage.on('mouseup', (e: Konva.KonvaEventObject<MouseEvent>) => {
-      const event = this.createCanvasMouseEvent(e.evt);
-      this.emit('mouseup', event);
-    });
-    
-    this.stage.on('wheel', (e: Konva.KonvaEventObject<WheelEvent>) => {
+    this.stage.on('mousedown', (e) => this.emit('mousedown', this.createCanvasMouseEvent(e.evt)));
+    this.stage.on('mousemove', (e) => this.emit('mousemove', this.createCanvasMouseEvent(e.evt)));
+    this.stage.on('mouseup', (e) => this.emit('mouseup', this.createCanvasMouseEvent(e.evt)));
+    this.stage.on('wheel', (e) => {
       e.evt.preventDefault();
-      const scaleFactor = e.evt.deltaY > 0 ? 0.9 : 1.1;
       const pointer = this.stage.getPointerPosition();
-      if (pointer) {
-        this.zoom(scaleFactor, pointer.x, pointer.y);
-      }
+      if (pointer) this.zoom(e.evt.deltaY > 0 ? 0.9 : 1.1, pointer.x, pointer.y);
     });
   }
 
   private createCanvasMouseEvent(evt: MouseEvent): CanvasMouseEvent {
-    const screenPosition: Point = {
-      x: evt.clientX,
-      y: evt.clientY
-    };
-    
-    const relativePos = this.stage.getRelativePointerPosition();
-    const canvasPosition: Point = {
-      x: relativePos?.x ?? 0,
-      y: relativePos?.y ?? 0
-    };
-    
+    const pos = this.stage.getRelativePointerPosition();
     return {
-      originalEvent: evt,
-      screenPosition,
-      canvasPosition,
-      button: evt.button,
-      shiftKey: evt.shiftKey,
-      ctrlKey: evt.ctrlKey || evt.metaKey,
-      altKey: evt.altKey,
-      metaKey: evt.metaKey
+      originalEvent: evt, screenPosition: { x: evt.clientX, y: evt.clientY },
+      canvasPosition: { x: pos?.x ?? 0, y: pos?.y ?? 0 },
+      button: evt.button, shiftKey: evt.shiftKey, ctrlKey: evt.ctrlKey || evt.metaKey, altKey: evt.altKey, metaKey: evt.metaKey
     };
   }
 
   public zoom(scaleFactor: number, centerX?: number, centerY?: number): void {
     const oldScale = this.stage.scaleX();
-    const newScale = oldScale * scaleFactor;
-    
-    if (newScale < 0.1 || newScale > 10) {
-      return;
-    }
-    
+    const newScale = Math.max(0.1, Math.min(10, oldScale * scaleFactor));
     const selectedNodes = this.transformer.nodes();
     this.transformer.nodes([]);
     
     if (centerX !== undefined && centerY !== undefined) {
       const mouse = this.stage.getPointerPosition();
-      if (!mouse) {
-        if (selectedNodes.length > 0) {
-          this.transformer.nodes(selectedNodes);
-        }
-        return;
+      if (mouse) {
+        this.stage.scale({ x: newScale, y: newScale });
+        this.stage.x(mouse.x - (mouse.x - this.stage.x()) * newScale / oldScale);
+        this.stage.y(mouse.y - (mouse.y - this.stage.y()) * newScale / oldScale);
       }
-      
-      const stageX = mouse.x - this.stage.x();
-      const stageY = mouse.y - this.stage.y();
-      
-      this.stage.scale({ x: newScale, y: newScale });
-      
-      const newX = mouse.x - (stageX * newScale / oldScale);
-      const newY = mouse.y - (stageY * newScale / oldScale);
-      
-      this.stage.x(newX);
-      this.stage.y(newY);
     } else {
       this.stage.scale({ x: newScale, y: newScale });
     }
@@ -199,12 +77,7 @@ import { Point, CanvasMouseEvent } from '../types';
     this.currentPan = { x: this.stage.x(), y: this.stage.y() };
     this.layer.batchDraw();
     this.emit('zoom', { zoom: this.currentZoom, pan: this.currentPan });
-    
-    if (selectedNodes.length > 0) {
-      requestAnimationFrame(() => {
-        this.selectNode(selectedNodes);
-      });
-    }
+    if (selectedNodes.length > 0) requestAnimationFrame(() => this.selectNode(selectedNodes));
   }
 
   public pan(dx: number, dy: number): void {
@@ -215,174 +88,79 @@ import { Point, CanvasMouseEvent } from '../types';
     this.emit('pan', { zoom: this.currentZoom, pan: this.currentPan });
   }
 
-  public setZoom(zoomLevel: number): void {
-    const factor = zoomLevel / this.currentZoom;
-    this.zoom(factor);
-  }
-
-  public setPan(x: number, y: number): void {
-    const dx = x - this.currentPan.x;
-    const dy = y - this.currentPan.y;
-    this.pan(dx, dy);
-  }
-
-  public getZoom(): number {
-    return this.currentZoom;
-  }
-
-  public getPan(): Point {
-    return { ...this.currentPan };
-  }
+  public setZoom(zoomLevel: number): void { this.zoom(zoomLevel / this.currentZoom); }
+  public setPan(x: number, y: number): void { this.pan(x - this.currentPan.x, y - this.currentPan.y); }
+  public getZoom(): number { return this.currentZoom; }
+  public getPan(): Point { return { ...this.currentPan }; }
 
   public resize(): void {
     const container = document.getElementById(this.containerId);
-    if (container) {
-      this.stage.width(container.clientWidth);
-      this.stage.height(container.clientHeight);
-      this.layer.batchDraw();
-    }
+    if (container) { this.stage.width(container.clientWidth); this.stage.height(container.clientHeight); this.layer.batchDraw(); }
   }
 
-  public addNode(node: Konva.Node): void {
-    this.layer.add(node as any);
-  }
-
-  public removeNode(node: Konva.Node): void {
-    node.destroy();
-    this.layer.batchDraw();
-  }
+  public addNode(node: Konva.Node): void { this.layer.add(node as any); }
+  public removeNode(node: Konva.Node): void { node.destroy(); this.layer.batchDraw(); }
 
   public selectNode(node: Konva.Node | Konva.Node[]): void {
     try {
-      const nodes = Array.isArray(node) ? node : [node];
-      
-      const validNodes = nodes.filter(n => n !== null && n !== undefined && n.getParent() !== null);
-      
-      if (validNodes.length === 0) {
-        console.warn('No valid nodes to select');
-        this.deselectAll();
-        return;
-      }
-      
-      this.transformer.nodes(validNodes as Konva.Node[]);
+      const nodes = (Array.isArray(node) ? node : [node]).filter(n => n?.getParent());
+      if (nodes.length === 0) { this.deselectAll(); return; }
+      this.transformer.nodes(nodes as Konva.Node[]);
       this.layer.batchDraw();
-    } catch (error) {
-      console.error('Error in selectNode:', error);
-      this.deselectAll();
-    }
+    } catch { this.deselectAll(); }
   }
 
-  public deselectAll(): void {
-    this.transformer.nodes([]);
-    this.layer.batchDraw();
-  }
+  public deselectAll(): void { this.transformer.nodes([]); this.layer.batchDraw(); }
 
   public clear(): void {
-    if (this.transformer) {
-      this.transformer.nodes([]);
-      this.transformer.destroy();
-    }
+    this.transformer.nodes([]);
+    this.transformer.destroy();
     this.layer.destroyChildren();
     this.createTransformer();
     this.layer.batchDraw();
   }
 
-  public getStage(): Konva.Stage {
-    return this.stage;
-  }
-
-  public getLayer(): Konva.Layer {
-    return this.layer;
-  }
-
-  public getTransformer(): Konva.Transformer {
-    return this.transformer;
-  }
+  public getStage(): Konva.Stage { return this.stage; }
+  public getLayer(): Konva.Layer { return this.layer; }
+  public getTransformer(): Konva.Transformer { return this.transformer; }
 
   public setBackgroundColor(color: string): void {
     this.backgroundColor = color;
-    const container = document.getElementById(this.containerId);
-    if (container) {
-      container.style.backgroundColor = color;
-    }
-    // Update transformer color to be complementary to background
+    (document.getElementById(this.containerId)!).style.backgroundColor = color;
     this.updateTransformerColor();
   }
 
-  public getBackgroundColor(): string {
-    return this.backgroundColor;
-  }
+  public getBackgroundColor(): string { return this.backgroundColor; }
 
-  /**
-   * Gets a complementary color for the selection box
-   * 
-   * @returns A color that contrasts well with the background
-   */
   private getComplementaryColor(): string {
-    // Predefined mappings for common colors
-    const colorMap: { [key: string]: string } = {
-      '#ffffff': '#0099ff',    // white → blue
-      '#000000': '#ff6600',    // black → orange
-      'white': '#0099ff',
-      'black': '#ff6600',
-      '#ff0000': '#00ffff',     // red → cyan
-      '#00ff00': '#ff00ff',     // green → magenta
-      '#0000ff': '#ffff00',     // blue → yellow
-      '#ffff00': '#0066ff',     // yellow → dark blue
-      '#00ffff': '#ff0000',     // cyan → red
-      '#ff00ff': '#00ff00',     // magenta → green
+    const map: { [k: string]: string } = {
+      '#ffffff': '#0099ff', '#000000': '#ff6600', 'white': '#0099ff', 'black': '#ff6600',
+      '#ff0000': '#00ffff', '#00ff00': '#ff00ff', '#0000ff': '#ffff00'
     };
-    
-    const lowerColor = this.backgroundColor.toLowerCase();
-    
-    // Check predefined mappings first
-    if (colorMap[lowerColor]) {
-      return colorMap[lowerColor];
-    }
-    
-    // Default to blue for any other color
-    return '#0099ff';
+    return map[this.backgroundColor.toLowerCase()] || '#0099ff';
   }
 
-  /**
-   * Updates the transformer color based on background color
-   */
   private updateTransformerColor(): void {
-    const complementaryColor = this.getComplementaryColor();
-    this.transformer.anchorStroke(complementaryColor);
-    this.transformer.borderStroke(complementaryColor);
+    const color = this.getComplementaryColor();
+    this.transformer.anchorStroke(color);
+    this.transformer.borderStroke(color);
     this.layer.batchDraw();
   }
 
   public on(eventName: string, callback: Function): void {
-    if (!this.eventListeners.has(eventName)) {
-      this.eventListeners.set(eventName, []);
-    }
+    if (!this.eventListeners.has(eventName)) this.eventListeners.set(eventName, []);
     this.eventListeners.get(eventName)!.push(callback);
   }
 
   public off(eventName: string, callback?: Function): void {
-    if (!this.eventListeners.has(eventName)) {
-      return;
-    }
-    
-    const listeners = this.eventListeners.get(eventName)!;
+    if (!this.eventListeners.has(eventName)) return;
     if (callback) {
-      const index = listeners.indexOf(callback);
-      if (index > -1) {
-        listeners.splice(index, 1);
-      }
-    } else {
-      this.eventListeners.delete(eventName);
-    }
+      const idx = this.eventListeners.get(eventName)!.indexOf(callback);
+      if (idx > -1) this.eventListeners.get(eventName)!.splice(idx, 1);
+    } else this.eventListeners.delete(eventName);
   }
 
   private emit(eventName: string, data?: any): void {
-    if (!this.eventListeners.has(eventName)) {
-      return;
-    }
-    
-    const listeners = this.eventListeners.get(eventName)!;
-    listeners.forEach(callback => callback(data));
+    this.eventListeners.get(eventName)?.forEach(cb => cb(data));
   }
 }

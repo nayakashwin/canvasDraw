@@ -39,6 +39,7 @@ import { ObjectManager } from './objectManager';
 import { HistoryManager } from './historyManager';
 import { StorageManager } from './storageManager';
 import { UIManager } from './uiManager';
+import { ImportPositioner } from './importPositioner';
 import { CanvasState, Point, Size, ObjectType, ObjectProperties, TextProperties, PathProperties, ToolType } from '../types';
 import Konva from 'konva';
 
@@ -1497,5 +1498,361 @@ export class App {
       // Notify listeners that history has changed
       this.changeHistoryListeners.forEach(listener => listener(this.changeHistory));
     }
+  }
+
+  /**
+   * Exports the current canvas state as JSON
+   * 
+   * Creates a JSON file containing all canvas objects and metadata
+   * and triggers a download.
+   * 
+   * USAGE EXAMPLE:
+   * app.exportAsJson();
+   * 
+   * BEGINNER TIP:
+   * This creates a JSON file that can be imported to restore the canvas.
+   * All objects are exported, including those imported from previous JSON files.
+   */
+  public exportAsJson(): void {
+    // Sync current state with actual canvas state
+    this.syncCurrentState();
+    
+    // Create export data
+    const exportData = {
+      version: '1.0',
+      timestamp: new Date().toISOString(),
+      backgroundColor: this.canvasManager?.getBackgroundColor() || '#ffffff',
+      zoom: this.currentState.zoom,
+      pan: this.currentState.pan,
+      objects: this.currentState.objects
+    };
+    
+    // Convert to JSON string
+    const jsonString = JSON.stringify(exportData, null, 2);
+    
+    // Create blob and download link
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    link.download = `canvas-export-${timestamp}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    // Log change
+    this.logChange('Export', 'Exported canvas as JSON');
+  }
+
+  /**
+   * Imports JSON data into the canvas
+   * 
+   * Opens a file dialog to select a JSON file, then asks the user
+   * whether to replace existing objects or add to them.
+   * 
+   * USAGE EXAMPLE:
+   * app.importFromJson();
+   * 
+   * BEGINNER TIP:
+   * This loads a previously exported JSON file. The user can choose
+   * to replace all existing objects or add the imported objects to the canvas.
+   */
+  public importFromJson(): void {
+    // Create file input
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    
+    input.onchange = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const file = target.files?.[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const jsonString = event.target?.result as string;
+          if (!jsonString) {
+            alert('Failed to read file');
+            return;
+          }
+          
+          const data = JSON.parse(jsonString);
+          
+          // Validate data structure
+          if (!Array.isArray(data.objects)) {
+            alert('Invalid JSON format: missing objects array');
+            return;
+          }
+          
+          // Ask user whether to replace or add to existing objects
+          this.showImportDialog(data);
+          
+        } catch (error) {
+          alert('Failed to parse JSON file: ' + (error instanceof Error ? error.message : 'Unknown error'));
+        }
+      };
+      
+      reader.readAsText(file);
+    };
+    
+    input.click();
+  }
+
+  /**
+   * Shows import dialog for choosing import mode
+   * 
+   * @param data - The imported JSON data
+   */
+  private showImportDialog(data: any): void {
+    // Remove existing dialog if any
+    const existingDialog = document.getElementById('import-dialog');
+    if (existingDialog) {
+      existingDialog.remove();
+    }
+    
+    // Create dialog
+    const dialog = document.createElement('div');
+    dialog.id = 'import-dialog';
+    dialog.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    `;
+    
+    dialog.innerHTML = `
+      <div style="
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        max-width: 500px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        font-family: Arial, sans-serif;
+      ">
+        <h2 style="margin: 0 0 20px 0; color: #333;">Import Options</h2>
+        <p style="margin: 0 0 20px 0; color: #666;">
+          Found ${data.objects?.length || 0} object(s) in the import file.<br><br>
+          How would you like to import these objects?
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button id="import-replace" style="
+            padding: 12px 20px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+          ">
+            Clear & Replace
+          </button>
+          <div style="font-size: 12px; color: #888; margin-left: 20px;">
+            Clear canvas and place objects at center of view
+          </div>
+          <button id="import-place-position" style="
+            padding: 12px 20px;
+            background: #00aa44;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+          ">
+            Place at Position
+          </button>
+          <div style="font-size: 12px; color: #888; margin-left: 20px;">
+            Click on canvas to choose placement location
+          </div>
+          <button id="import-cancel" style="
+            padding: 12px 20px;
+            background: #ccc;
+            color: #333;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+          ">
+            Cancel
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(dialog);
+    
+    // Set up event listeners for buttons
+    const replaceBtn = document.getElementById('import-replace');
+    const placePositionBtn = document.getElementById('import-place-position');
+    const cancelBtn = document.getElementById('import-cancel');
+
+    replaceBtn?.addEventListener('click', () => {
+      dialog.remove();
+      const centerPosition = this.getCanvasCenterPosition();
+      this.performImport(data, 'replace-center', centerPosition);
+    });
+
+    placePositionBtn?.addEventListener('click', () => {
+      dialog.remove();
+      this.enablePositioningForImport(data);
+    });
+
+    cancelBtn?.addEventListener('click', () => {
+      dialog.remove();
+    });
+  }
+
+  /**
+   * Performs the actual import operation
+   *
+   * @param data - The imported JSON data
+   * @param mode - Import mode: 'add' or 'replace-center'
+   * @param targetPosition - Optional target position for placing imported objects
+   */
+  private performImport(data: any, mode: 'add' | 'replace-center', targetPosition?: Point): void {
+    // Calculate objects to import
+    let objectsToImport = data.objects || [];
+
+    // For replace-center mode, clear the canvas first
+    if (mode === 'replace-center') {
+      this.objectManager?.clearAll();
+      this.currentState.objects = [];
+      this.currentState.selectedIds = [];
+      this.currentState.groupedIds = [];
+      this.historyManager?.clear();
+    }
+
+// Calculate center point and offset if target position is provided
+    if (targetPosition) {
+      const centerPoint = ImportPositioner.calculateCenterPoint(objectsToImport);
+      const offset = ImportPositioner.calculateOffset(centerPoint, targetPosition);
+      objectsToImport = ImportPositioner.applyOffset(objectsToImport, offset);
+    }
+
+    // Import objects
+    objectsToImport.forEach((obj: any) => {
+      // Generate a new ID for the object to avoid conflicts
+      const newObj = {
+        ...obj,
+        id: `obj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        createdAt: new Date(obj.createdAt || new Date()),
+        updatedAt: new Date()
+      };
+
+      this.objectManager?.createObject(
+        newObj.type,
+        newObj.position,
+        newObj.size,
+        newObj.properties
+      );
+    });
+
+    // Sync state and save
+    this.syncCurrentState();
+    this.saveState();
+
+    // Update UI
+    this.uiManager?.updateObjectCount();
+
+    // Log change
+    const action = mode === 'replace-center' ? 'Replaced' : 'Placed';
+    this.logChange('Import', `${action} ${objectsToImport.length} object(s) from JSON`);
+
+    // Show success message
+    alert(`Successfully ${action.toLowerCase()} ${objectsToImport.length} object(s)!`);
+  }
+
+  /**
+   * Calculates the center position of the canvas viewport
+   *
+   * @returns The center point of the current canvas view
+   */
+  private getCanvasCenterPosition(): Point {
+    if (!this.canvasManager) {
+      return { x: 0, y: 0 };
+    }
+
+    const stage = this.canvasManager.getStage();
+    if (!stage) {
+      return { x: 0, y: 0 };
+    }
+
+    // Get the viewport center in screen coordinates
+    const stageWidth = stage.width();
+    const stageHeight = stage.height();
+    const screenCenterX = stageWidth / 2;
+    const screenCenterY = stageHeight / 2;
+
+    // Convert screen coordinates to canvas coordinates considering zoom and pan
+    const scale = stage.scaleX();
+    const x = stage.x();
+    const y = stage.y();
+
+    const canvasCenterX = (screenCenterX - x) / scale;
+    const canvasCenterY = (screenCenterY - y) / scale;
+
+    return { x: canvasCenterX, y: canvasCenterY };
+  }
+
+  /**
+   * Enables positioning mode for importing objects
+   * 
+   * @param data - The imported JSON data
+   */
+  private enablePositioningForImport(data: any): void {
+    // Show positioning prompt
+    const positioningPrompt = this.createPositioningPrompt(data);
+    document.body.appendChild(positioningPrompt);
+
+    // Enable positioning mode through UI manager
+    this.uiManager?.enablePositioningMode((position: Point) => {
+      positioningPrompt.remove();
+      this.performImport(data, 'add', position);
+    });
+  }
+
+  /**
+   * Creates a positioning prompt dialog
+   * 
+   * @param data - The imported JSON data
+   * @returns The dialog element
+   */
+  private createPositioningPrompt(data: any): HTMLElement {
+    const prompt = document.createElement('div');
+    prompt.style.cssText = `
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      padding: 20px 30px;
+      border-radius: 8px;
+      z-index: 10001;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    `;
+    prompt.innerHTML = `
+      <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">
+        📍 Click on the Canvas
+      </div>
+      <div style="font-size: 14px; opacity: 0.9;">
+        Click anywhere on the canvas to place ${data.objects?.length || 0} object(s)<br>
+        <span style="color: #ff6666;">Press ESC to cancel</span>
+      </div>
+    `;
+    return prompt;
   }
 }

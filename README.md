@@ -46,7 +46,9 @@ Canvas Draw is a **browser-based diagramming application**. Think of it as a dig
 - **Color System**: 10 predefined colors + custom color picker
 - **Stroke Width**: Adjustable thin, medium, and thick options
 - **Auto-Save**: Automatic saving to IndexedDB every 5 minutes
-- **XML Export**: Export your diagrams to XML format for sharing
+- **JSON Export/Import**: Export your diagrams to JSON format, with two import options: clear & replace at center, or place at chosen position
+- **Looney Mode**: Hand-drawn wavy effect for sketches
+- **Line Styles**: Solid, dashed, dotted, and custom patterns
 - **Client-Side Only**: No server required - runs entirely in the browser
 - **Fast Performance**: Optimized rendering with smooth 60 FPS
 
@@ -168,6 +170,8 @@ This starts the production server with the built bundle.
 | `Ctrl++` | Zoom in |
 | `Ctrl+-` | Zoom out |
 | `Ctrl+0` | Reset zoom to 100% |
+| `Ctrl+E` | Export canvas as JSON |
+| `Ctrl+I` | Import JSON to canvas |
 
 ### Console Commands for Testing
 
@@ -195,8 +199,9 @@ window.app.redo()             // Redo undone action
 window.app.canUndo()          // Check if undo is available
 window.app.canRedo()          // Check if redo is available
 
-// Export
-window.app.exportToXML('my-diagram.xml')
+// Export/Import
+window.app.exportAsJson()     // Export canvas as JSON
+window.app.importFromJson()   // Import JSON to canvas
 ```
 
 ---
